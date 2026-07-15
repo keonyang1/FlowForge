@@ -11,12 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="css/style.css">
-
 </head>
 <body>
 
     <!-- 1. 인증 모달 -->
-    <div id="auth-overlay" class="modal-overlay">
+    <div id="auth-overlay" class="modal-overlay show">
         <div class="modal-content" style="max-width: 400px;">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <div class="brand" style="justify-content: center; margin-bottom: 0.5rem; font-size: 1.75rem;">
@@ -28,7 +27,13 @@
             <div id="view-login" class="page-section active">
                 <form id="form-login">
                     <div class="form-group"><label>아이디</label><input type="text" id="login-id" class="form-control" required></div>
-                    <div class="form-group"><label>비밀번호</label><input type="password" id="login-pw" class="form-control" required></div>
+                    <div class="form-group">
+                        <label>비밀번호</label>
+                        <div class="pw-input-wrapper">
+                            <input type="password" id="login-pw" class="form-control" required style="padding-right: 2.5rem;">
+                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('login-pw', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
                     <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">로그인</button>
                 </form>
                 <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
@@ -40,7 +45,20 @@
                 <form id="form-register">
                     <div class="form-group"><label>아이디 (4자 이상)</label><input type="text" id="reg-id" class="form-control" required></div>
                     <div class="form-group"><label>닉네임</label><input type="text" id="reg-nickname" class="form-control" required></div>
-                    <div class="form-group"><label>비밀번호 (6자 이상)</label><input type="password" id="reg-pw" class="form-control" required></div>
+                    <div class="form-group">
+                        <label>비밀번호 (6자 이상)</label>
+                        <div class="pw-input-wrapper">
+                            <input type="password" id="reg-pw" class="form-control" required style="padding-right: 2.5rem;">
+                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('reg-pw', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>비밀번호 확인</label>
+                        <div class="pw-input-wrapper">
+                            <input type="password" id="reg-pw-confirm" class="form-control" required style="padding-right: 2.5rem;">
+                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('reg-pw-confirm', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
                     <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">계정 생성</button>
                 </form>
                 <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
@@ -87,7 +105,6 @@
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
-                    <!-- '완료됨' 옵션 제거 요청 반영: 생성/수정 시 오직 계획됨, 진행중만 선택 가능 -->
                     <div class="form-group" style="flex: 1;"><label>상태</label>
                         <select id="proj-status" class="form-control">
                             <option value="계획 됨">계획 됨</option>
@@ -132,6 +149,47 @@
         </div>
     </div>
 
+    <!-- 5. 프로필 수정 모달 -->
+    <div id="profile-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'profile-modal')">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="profile-modal-title">프로필 수정</h3>
+                <button class="modal-close" onclick="UI.closeModal('profile-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-profile">
+                <div class="form-group">
+                    <label>새 닉네임</label>
+                    <input type="text" id="prof-nickname" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>현재 비밀번호 (필수)</label>
+                    <div class="pw-input-wrapper">
+                        <input type="password" id="prof-current-pw" class="form-control" style="padding-right: 2.5rem;" placeholder="정보 수정을 위해 입력해주세요">
+                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-current-pw', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>새 비밀번호 (선택)</label>
+                    <div class="pw-input-wrapper">
+                        <input type="password" id="prof-new-pw" class="form-control" style="padding-right: 2.5rem;" placeholder="변경 시에만 입력하세요">
+                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-new-pw', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>새 비밀번호 확인</label>
+                    <div class="pw-input-wrapper">
+                        <input type="password" id="prof-new-pw-confirm" class="form-control" style="padding-right: 2.5rem;">
+                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-new-pw-confirm', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="UI.closeModal('profile-modal')">취소</button>
+                    <button type="submit" class="btn-primary" id="btn-submit-profile">변경사항 저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <!-- 앱 뼈대 -->
@@ -139,7 +197,6 @@
         <div class="brand"><i class="fas fa-layer-group"></i> FlowForge</div>
         <ul class="nav-menu">
             <li><a class="nav-item active" onclick="UI.switchPage('dashboard')"><i class="fas fa-home"></i> 대시보드</a></li>
-            <!-- 요청 반영: 아이콘을 fa-project-diagram 에서 fa-folder 로 변경 -->
             <li><a class="nav-item" onclick="UI.switchPage('projects')"><i class="fas fa-folder"></i> 프로젝트</a></li>
             <li><a class="nav-item" onclick="UI.switchPage('tasks')"><i class="fas fa-tasks"></i> 작업 보드</a></li>
             <li><a class="nav-item" onclick="UI.switchPage('analytics')"><i class="fas fa-chart-pie"></i> 통계 리포트</a></li>
@@ -171,6 +228,7 @@
                             <p style="font-size: 0.75rem; color: var(--text-muted);" id="dropdown-id">@-</p>
                         </div>
                         <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="btn-edit-profile"><i class="fas fa-user-edit"></i> 프로필 수정</button>
                         <button class="dropdown-item text-danger" id="btn-delete-account"><i class="fas fa-user-times"></i> 회원 탈퇴</button>
                         <button class="dropdown-item text-danger" id="btn-logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</button>
                     </div>
@@ -273,9 +331,6 @@
             </section>
         </main>
     </div>
-
-    <script src="js/api.js"></script>
     <script src="js/script.js"></script>
-
 </body>
 </html>
