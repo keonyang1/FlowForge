@@ -14,3 +14,12 @@ function formatFriendlyDate(dateStr) {
     const d = new Date(dateStr);
     return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
+
+function validateUsername(username) {
+    username = username.trim();
+    return AUTH.USERNAME_REGEX.test(username);
+}
+
+function validatePassword(password) {
+    return AUTH.PASSWORD_REGEX.test(password);
+}

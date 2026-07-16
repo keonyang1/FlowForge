@@ -144,14 +144,14 @@ function initAuth() {
         const nickname = document.getElementById("reg-nickname").value.trim();
         const pw = document.getElementById('reg-pw').value;
         const pwConfirm = document.getElementById('reg-pw-confirm').value;
-
-        if(id.length<4){
-            UI.showToast("아이디는 4자 이상이어야 합니다.", "warning");
+        
+        if(!validateUsername(id)){
+            UI.showToast("아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.", "warning");
             return;
         }
 
-        if(pw.length<6){
-            UI.showToast("비밀번호는 6자 이상이어야 합니다.", "warning");
+        if(!validatePassword(pw)){
+            UI.showToast("비밀번호는 영문 대/소문자, 숫자, 특수문자만 사용할 수 있으며 6자 이상이어야 합니다.", "warning");
             return;
         }
 
@@ -171,7 +171,11 @@ function initAuth() {
             const res = await AppAPI.register(document.getElementById("reg-id").value.trim(), pw, document.getElementById("reg-nickname").value.trim());
             if(res.success) {
                 UI.showToast('계정이 생성되었습니다. 로그인해주세요.');
-                document.getElementById('link-to-login').click();
+                document.getElementById("link-to-login").click();
+                document.getElementById("login-id").value=id;
+                document.getElementById("login-pw").value="";
+                document.getElementById("login-pw").focus();
+                UI.showToast("회원가입이 완료되었습니다. 비밀번호를 입력하여 로그인해주세요.");
             } else { UI.showToast(res.message, 'error'); }
         } catch(e) { UI.showToast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = '계정 생성'; }
     };
