@@ -1,3 +1,5 @@
+let isProjectRequest = false;
+
 window.openEditProjectModal = function(id) { UI.openProjectModal('edit', id); };
 window.confirmCompleteProject = function(projId) {
     UI.confirm('프로젝트 완료', '정말로 프로젝트를 완료 처리하시겠습니까? 완료된 프로젝트는 더 이상 상태를 변경하거나 수정할 수 없습니다.', () => {
@@ -10,11 +12,15 @@ async function loadAppData() {
     if(!user) return;
     UI.setGlobalLoading(true);
     try {
-        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.id), AppAPI.getTasks(user.id)]);
+        //const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.username), AppAPI.getTasks(user.username)]);
+        const pRes = await AppAPI.getProjects(user.username);
         if (pRes.success) currentProjects = pRes.projects;
-        if (tRes.success) currentTasks = tRes.tasks;
+        //if (tRes.success) currentTasks = tRes.tasks;
 
-        renderProjects(); renderTasks(); renderDashboard(); renderAnalytics();
+        renderProjects();
+        //renderTasks();
+        renderDashboard();
+        renderAnalytics();
     } catch (e) { UI.showToast(e.message, 'error'); } 
     finally { UI.setGlobalLoading(false); }
 }
@@ -52,13 +58,7 @@ function renderProjects() {
                     </div>
                 </div>
                 <h3 class="project-title search-text">${proj.title}</h3>
-                <p class="project-desc search-text" title="${proj.desc || ''}">${proj.desc || '설명이 없습니다.'}</p>
-                <div style="margin-top: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.4rem; font-weight: 500;">
-                        <span>진행률</span><span>${proj.progress}%</span>
-                    </div>
-                    <div class="progress-container"><div class="progress-bar" style="width: ${proj.progress}%;"></div></div>
-                </div>
+                <p class="project-desc search-text" title="${proj.description || ''}">${proj.description || '설명이 없습니다.'}</p>
                 <div class="project-footer">
                     <span class="badge ${dday.c}">${dday.t}</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;"><i class="far fa-calendar"></i> 목표: ${formatFriendlyDate(proj.due_date)}</span>
@@ -68,20 +68,86 @@ function renderProjects() {
 }
 
 async function updateProjectStatus(projId, status) {
+    if (isProjectRequest) return;
+    isProjectRequest = true;
+    const buttons = document.querySelectorAll(
+        ".btn-success, .btn-edit-item, .btn-delete-item"
+    );
+    buttons.forEach(btn => btn.disabled = true);
     UI.setGlobalLoading(true);
     try {
         const res = await AppAPI.updateProjectStatus(projId, status);
-        if(res.success) { UI.showToast(`프로젝트가 ${status} 처리되었습니다.`); loadAppData(); }
-        else throw new Error(res.message);
-    } catch(e) { UI.showToast(e.message, 'error'); }
-    finally { UI.setGlobalLoading(false); }
+        if (!res.success) {
+            throw new Error(res.message);
+        }
+        await loadAppData();
+        UI.showToast(`프로젝트가 ${status} 처리되었습니다.`);
+    } catch (e) {
+        UI.showToast(e.message, "error");
+    } finally {
+        buttons.forEach(btn => btn.disabled = false);
+        isProjectRequest = false;
+        UI.setGlobalLoading(false);
+    }
 }
 
 function deleteProject(projId) {
     UI.confirm('프로젝트 삭제', '이 프로젝트와 관련된 모든 작업이 함께 삭제될 수 있습니다.', async () => {
         UI.setGlobalLoading(true);
-        const res = await AppAPI.deleteProject(projId, AppAPI.getUser().id);
+        const res = await AppAPI.deleteProject(projId, AppAPI.getUser().username);
         if(res.success) { UI.showToast('프로젝트가 삭제되었습니다.'); loadAppData(); } else UI.showToast(res.message, 'error');
         UI.setGlobalLoading(false);
     });
+}
+
+
+function initProject() {
+    document.getElementById("form-project").onsubmit = async (e) => {
+        if (isProjectRequest) return;
+        isProjectRequest = true;
+        e.preventDefault();
+        const submitBtn = document.getElementById("btn-submit-proj");
+        const form = e.target;
+        const mode = form.dataset.mode;
+        const data = {
+            title: document.getElementById("proj-title").value.trim(),
+            description: document.getElementById("proj-desc").value.trim(),
+            status: document.getElementById("proj-status").value,
+            due_date: document.getElementById("proj-date").value,
+            user_id: AppAPI.getUser().username
+        };
+
+        UI.lockButton(
+            submitBtn,
+            form.dataset.mode === "create"
+                ? "생성 중..."
+                : "저장 중..."
+        );
+        UI.setGlobalLoading(true);
+        try {
+            let res;
+            if (mode === "create") {
+                res = await AppAPI.addProject(data);
+            } else {
+                data.project_id = form.dataset.id;
+                res = await AppAPI.updateProject(data);
+            }
+            if (!res.success) {
+                throw new Error(res.message);
+            }
+            UI.closeModal("project-modal");
+            await loadAppData();
+            UI.showToast(
+                mode === "create"
+                    ? "프로젝트가 생성되었습니다."
+                    : "프로젝트가 수정되었습니다."
+            );
+        } catch (err) {
+            UI.showToast(err.message, "error");
+        } finally {
+            isProjectRequest = false;
+            UI.unlockButton(submitBtn);
+            UI.setGlobalLoading(false);
+        }
+    };
 }

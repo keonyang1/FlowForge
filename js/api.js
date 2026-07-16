@@ -19,7 +19,9 @@ const AppAPI = {
         }
     },
 
-    // 회원가입
+    // =========================
+    // Users
+    // =========================
     async register(username, password, nickname) {
         return await this.fetch({action: "register", username, password, nickname});
     },
@@ -87,5 +89,47 @@ const AppAPI = {
             this.logout();
             return null;
         }
+    },
+
+
+    // =========================
+    // Projects
+    // =========================
+
+    async getProjects(userId) {
+        return await this.fetch({
+            action: "get_projects",
+            user_id: userId
+        });
+    },
+
+    async addProject(data) {
+        return await this.fetch({
+            action: "add_project",
+            ...data
+        });
+    },
+
+    async updateProject(data) {
+        return await this.fetch({
+            action: "update_project",
+            ...data
+        });
+    },
+
+    async updateProjectStatus(projectId, status) {
+        return await this.fetch({
+            action: "update_project_status",
+            project_id: projectId,
+            status
+        });
+    },
+
+    async deleteProject(projectId, userId) {
+        return await this.fetch({
+            action: "delete_project",
+            project_id: projectId,
+            user_id: userId
+        });
     }
 };

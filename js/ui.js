@@ -59,7 +59,11 @@ const UI = {
         
         form.reset();
         form.dataset.mode = mode;
-        form.dataset.id = projId || '';
+        if (projId) {
+            form.dataset.id = projId;
+        } else {
+            delete form.dataset.id;
+        }
 
         if (mode === 'edit') {
             title.textContent = '프로젝트 수정';
@@ -67,7 +71,7 @@ const UI = {
             const proj = currentProjects.find(p => p.id === projId);
             if(proj) {
                 document.getElementById('proj-title').value = proj.title;
-                document.getElementById('proj-desc').value = proj.desc || '';
+                document.getElementById('proj-desc').value = proj.description || '';
                 document.getElementById('proj-status').value = proj.status;
                 if(proj.due_date) document.getElementById('proj-date').value = getFormatDate(proj.due_date);
             }
@@ -139,5 +143,20 @@ const UI = {
         const loader = document.getElementById('global-loader');
         if(isLoad) { loader.style.display = 'flex'; setTimeout(()=>loader.style.opacity = '1', 10); }
         else { loader.style.opacity = '0'; setTimeout(()=>loader.style.display = 'none', 300); }
+    },
+    lockButton(button, loadingText = "처리 중...") {
+        if (!button) return;
+        button.dataset.originalText = button.innerHTML;
+        button.disabled = true;
+        button.style.pointerEvents = "none";
+        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+    },
+    unlockButton(button) {
+        if (!button) return;
+        button.disabled = false;
+        button.style.pointerEvents = "";
+        if (button.dataset.originalText) {
+            button.innerHTML = button.dataset.originalText;
+        }
     }
 };
