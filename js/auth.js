@@ -43,25 +43,36 @@ function initAuth() {
             let profileSuccess = false;
             
             // 1. 닉네임 변경 API 호출 로직 
-            if (newNickname !== user.nickname) {
-                const profileRes = await AppAPI.updateProfile(user.id, newNickname);
-                if (!profileRes.success) throw new Error(profileRes.message);
+            if (
+                newNickname !== "" &&
+                newNickname !== user.nickname
+            ) {
+                const profileRes =
+                    await AppAPI.updateProfile(
+                        user.username,
+                        currentPw,
+                        newNickname
+                    );
+                if (!profileRes.success)
+                    throw new Error(profileRes.message);
                 user.nickname = newNickname;
                 profileSuccess = true;
             }
 
             // 2. 비밀번호 변경 API 호출 로직
-            if (newPw) {
-                const pwRes = await AppAPI.updatePassword(user.id, currentPw, newPw);
+            if (newPw !== "") {
+                const pwRes = await AppAPI.updatePassword(user.username, currentPw, newPw);
                 if (!pwRes.success) throw new Error(pwRes.message);
                 profileSuccess = true;
             }
 
             if (profileSuccess) {
-                localStorage.setItem('flowforge_session', JSON.stringify(user));
-                document.getElementById('header-nickname').textContent = user.nickname;
-                document.getElementById('header-avatar-initial').textContent = user.nickname.charAt(0).toUpperCase();
-                document.getElementById('dropdown-nickname').textContent = user.nickname;
+                user.nickname = newNickname;
+                localStorage.setItem("flowforge_session", JSON.stringify(user));
+                document.getElementById("header-nickname").textContent=user.nickname;
+                document.getElementById("dropdown-nickname").textContent=user.nickname;
+                document.getElementById("header-avatar-initial").textContent=
+                user.nickname.charAt(0).toUpperCase();
                 
                 UI.showToast('프로필이 성공적으로 업데이트 되었습니다.');
                 UI.closeModal('profile-modal');
@@ -90,7 +101,7 @@ function initAuth() {
             UI.setGlobalLoading(true);
             
             try {
-                const res = await AppAPI.deleteAccount(AppAPI.getUser().id);
+                const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
                 if(res.success) { 
                     UI.showToast('탈퇴 및 관련된 모든 데이터 삭제가 완료되었습니다.'); 
                     AppAPI.logout(); 
@@ -110,6 +121,7 @@ function initAuth() {
         document.getElementById('header-nickname').textContent = user.nickname;
         document.getElementById('header-avatar-initial').textContent = user.nickname.charAt(0).toUpperCase();
         document.getElementById('dropdown-nickname').textContent = user.nickname;
+        document.getElementById('dropdown-username').textContent = `@${user.username}`;
         document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
         loadAppData();
     }
@@ -129,7 +141,7 @@ function initAuth() {
                 document.getElementById('header-nickname').textContent = res.user.nickname;
                 document.getElementById('header-avatar-initial').textContent = res.user.nickname.charAt(0).toUpperCase();
                 document.getElementById('dropdown-nickname').textContent = res.user.nickname;
-                document.getElementById('dropdown-id').textContent = `@${res.user.id}`;
+                document.getElementById('dropdown-username').textContent = `@${res.user.username}`;
                 document.getElementById('dashboard-greeting').textContent = `${res.user.nickname}님, 환영합니다!`;
                 document.getElementById('auth-overlay').classList.remove('show');
                 loadAppData();

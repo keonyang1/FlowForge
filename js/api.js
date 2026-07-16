@@ -36,6 +36,26 @@ const AppAPI = {
         return result;
     },
 
+    // 닉네임 변경
+    async updateProfile(username, currentPassword, nickname) {
+        return this.fetch({
+            action: "update_profile",
+            username,
+            current_password: currentPassword,
+            nickname
+        });
+    },
+
+    // 비밀번호 변경
+    async updatePassword(username, oldPassword, newPassword) {
+        return this.fetch({
+            action:"update_password",
+            username,
+            old_password:oldPassword,
+            new_password:newPassword
+        });
+    },
+
     // 로그아웃
     logout() {
         localStorage.removeItem("flowforge_session");
