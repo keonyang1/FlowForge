@@ -140,17 +140,10 @@ function initAuth() {
     document.getElementById('form-register').onsubmit = async (e) => {
         e.preventDefault(); 
         
-        const pw = document.getElementById('reg-pw').value;
-        const pwConfirm = document.getElementById('reg-pw-confirm').value;
-        
-        // 비밀번호 확인 일치 검증
-        if (pw !== pwConfirm) {
-            UI.showToast('비밀번호가 일치하지 않습니다.', 'warning');
-            return;
-        }
-
         const id = document.getElementById("reg-id").value.trim();
         const nickname = document.getElementById("reg-nickname").value.trim();
+        const pw = document.getElementById('reg-pw').value;
+        const pwConfirm = document.getElementById('reg-pw-confirm').value;
 
         if(id.length<4){
             UI.showToast("아이디는 4자 이상이어야 합니다.", "warning");
@@ -164,6 +157,12 @@ function initAuth() {
 
         if(nickname===""){
             UI.showToast("닉네임을 입력해주세요.", "warning");
+            return;
+        }
+
+        // 비밀번호 확인 일치 검증
+        if (pw !== pwConfirm) {
+            UI.showToast('비밀번호가 일치하지 않습니다.', 'warning');
             return;
         }
 
