@@ -34,6 +34,11 @@ function renderProjects() {
     }
 
     currentProjects.forEach(proj => {
+        const tasks = currentTasks.filter(t => t.project_id === proj.id);
+        const completed = tasks.filter(t => t.status === "Done").length;
+        const total = tasks.length;
+        const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+
         const diff = proj.due_date ? Math.ceil((new Date(proj.due_date) - new Date().setHours(0,0,0,0)) / 86400000) : null;
         const dday = diff === null ? { t: '기한 없음', c: 'bg-default' } : (diff > 0 ? { t: `D-${diff}`, c: 'bg-info' } : (diff === 0 ? { t: 'D-Day', c: 'bg-warning' } : { t: `D+${Math.abs(diff)} 지연`, c: 'bg-danger' }));
         const statusColor = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-warning' : 'bg-default');
@@ -58,6 +63,16 @@ function renderProjects() {
                 </div>
                 <h3 class="project-title search-text">${proj.title}</h3>
                 <p class="project-desc search-text" title="${proj.description || ''}">${proj.description || '설명이 없습니다.'}</p>
+                <div class="project-progress">
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width:${progress}%"></div>
+                    </div>
+
+                    <div class="project-progress-info">
+                        <span>${completed} / ${total} 완료</span>
+                        <span>${progress}%</span>
+                    </div>
+                </div>
                 <div class="project-footer">
                     <span class="badge ${dday.c}">${dday.t}</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;"><i class="far fa-calendar"></i> 목표: ${formatFriendlyDate(proj.due_date)}</span>

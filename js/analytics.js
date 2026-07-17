@@ -58,7 +58,7 @@ function renderAnalytics() {
         const total = currentProjects.length;
         
         pContent.innerHTML = '';
-        [ {l:'진행 중', k:'진행 중', c:'var(--info-color)'}, {l:'계획됨', k:'계획 됨', c:'var(--warning-color)'}, {l:'완료됨', k:'완료됨', c:'var(--success-color)'} ].forEach(item => {
+        [ {l:'계획됨', k:'계획 됨', c:'var(--warning-color)'}, {l:'진행 중', k:'진행 중', c:'var(--info-color)'}, {l:'완료됨', k:'완료됨', c:'var(--success-color)'} ].forEach(item => {
             const pct = Math.round((pCounts[item.k] / total) * 100) || 0;
             pContent.innerHTML += `
                 <div class="stat-bar-row">

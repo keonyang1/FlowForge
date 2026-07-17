@@ -83,6 +83,10 @@ body { background-color: var(--bg-body); color: var(--text-primary); display: fl
 .progress-container { width: 100%; background-color: var(--border-color); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 0.5rem; }
 .progress-bar { height: 100%; background-color: var(--accent-color); border-radius: 99px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
+.project-progress { margin: 1rem 0 0.5rem; }
+.project-progress-info { display:flex; justify-content:space-between; margin-top:.35rem; font-size:.75rem; color:var(--text-muted); }
+
+
 /* --- 프로필 --- */
 .header-actions { display: flex; align-items: center; gap: 1rem; }
 .profile-wrapper { position: relative; }
