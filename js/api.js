@@ -85,6 +85,13 @@ const AppAPI = {
         });
     },
 
+    async deleteAccount(userId) {
+        return await this.fetch({
+            action: "delete_user",
+            user_id: userId
+        });
+    },
+
 
     // =========================
     // Project

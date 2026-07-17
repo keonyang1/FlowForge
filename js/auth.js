@@ -96,19 +96,28 @@ function initAuth() {
             
     // 회원 탈퇴 로직
     document.getElementById('btn-delete-account').onclick = () => {
-        UI.confirm('회원 탈퇴 및 데이터 삭제', '정말로 회원 탈퇴하시겠습니까? 탈퇴 시 기존에 작성한 모든 프로젝트 및 작업 데이터가 함께 영구히 삭제되며 절대 복구할 수 없습니다.', async () => {
+        UI.confirm('회원 탈퇴', '정말 회원 탈퇴하시겠습니까?<br><br>모든 프로젝트와 작업이 함께 영구 삭제됩니다.<br>삭제된 데이터는 복구할 수 없습니다.', async () => {
             document.getElementById('profile-dropdown').classList.remove('show');
             UI.setGlobalLoading(true);
             
             try {
-                const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
+                /*const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
                 if(res.success) { 
-                    UI.showToast('탈퇴 및 관련된 모든 데이터 삭제가 완료되었습니다.'); 
-                    AppAPI.logout(); 
+                    UI.showToast('회원 탈퇴가 완료되었습니다.'); 
+                    AppAPI.logout();
                     resetAppUI();
                     document.getElementById('auth-overlay').classList.add('show'); 
                 } else {
                     UI.showToast(res.message, 'error');
+                }*/
+                const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
+                console.log("1", res);
+                if (res.success) {
+                    console.log("2 before logout", localStorage.getItem("flowforge_session"));
+                    AppAPI.logout();
+                    console.log("3 after logout", localStorage.getItem("flowforge_session"));
+                    resetAppUI();
+                    document.getElementById("auth-overlay").classList.add("show");
                 }
             } catch(err) { UI.showToast(err.message, 'error'); }
             finally { UI.setGlobalLoading(false); }
@@ -133,7 +142,7 @@ function initAuth() {
     // 로그인 및 회원가입 폼 제출 로직 (비밀번호 확인 추가됨)
     document.getElementById('form-login').onsubmit = async (e) => {
         e.preventDefault(); 
-        const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 로그인 중...';
+        const btn = document.getElementById('btn-login'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 로그인 중...';
         try {
             const res = await AppAPI.login(document.getElementById('login-id').value, document.getElementById('login-pw').value);
             if(res.success) {
@@ -178,11 +187,10 @@ function initAuth() {
             return;
         }
 
-        const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 처리중...';
+        const btn = document.getElementById('btn-register'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 처리중...';
         try {
             const res = await AppAPI.register(document.getElementById("reg-id").value.trim(), pw, document.getElementById("reg-nickname").value.trim());
             if(res.success) {
-                UI.showToast('계정이 생성되었습니다. 로그인해주세요.');
                 document.getElementById("link-to-login").click();
                 document.getElementById("login-id").value=id;
                 document.getElementById("login-pw").value="";

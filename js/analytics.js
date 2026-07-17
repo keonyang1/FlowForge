@@ -1,8 +1,15 @@
 function renderDashboard() {
-    document.getElementById('stat-total').textContent = currentProjects.length;
-    document.getElementById('stat-active').textContent = currentProjects.filter(p => p.status !== '완료됨').length;
-    document.getElementById('stat-done').textContent = currentProjects.filter(p => p.status === '완료됨').length;
-    document.getElementById('stat-tasks').textContent = currentTasks.filter(t => t.status !== 'Done').length;
+    const totalProjects = currentProjects.length;
+    const activeProjects = currentProjects.filter(p => p.status === "진행 중").length;
+    const completedProjects = currentProjects.filter(p => p.status === "완료됨").length;
+
+    const totalTasks = currentTasks.length;
+    const activeTasks = currentTasks.filter(t => t.status !== "Done").length;
+
+    document.getElementById("stat-total").textContent = totalProjects;
+    document.getElementById("stat-active").textContent = activeProjects;
+    document.getElementById("stat-done").textContent = completedProjects;
+    document.getElementById("stat-tasks").textContent = `${activeTasks} / ${totalTasks}`;
 
     const list = document.getElementById('dashboard-recent-tasks');
     list.innerHTML = '';

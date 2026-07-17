@@ -2,7 +2,7 @@ let isProjectRequest = false;
 
 window.openEditProjectModal = function(id) { UI.openProjectModal('edit', id); };
 window.confirmCompleteProject = function(projId) {
-    UI.confirm('프로젝트 완료', '정말로 프로젝트를 완료 처리하시겠습니까? 완료된 프로젝트는 더 이상 상태를 변경하거나 수정할 수 없습니다.', () => {
+    UI.confirm('프로젝트 완료', '정말로 프로젝트를 완료 처리하시겠습니까?<br>완료된 프로젝트는 더 이상 상태를 변경하거나 수정할 수 없습니다.', () => {
         updateProjectStatus(projId, '완료됨');
     });
 };
