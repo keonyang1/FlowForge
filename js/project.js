@@ -12,13 +12,12 @@ async function loadAppData() {
     if(!user) return;
     UI.setGlobalLoading(true);
     try {
-        //const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.username), AppAPI.getTasks(user.username)]);
-        const pRes = await AppAPI.getProjects(user.username);
+        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.username), AppAPI.getTasks(user.username)]);
         if (pRes.success) currentProjects = pRes.projects;
-        //if (tRes.success) currentTasks = tRes.tasks;
+        if (tRes.success) currentTasks = tRes.tasks;
 
         renderProjects();
-        //renderTasks();
+        renderTasks();
         renderDashboard();
         renderAnalytics();
     } catch (e) { UI.showToast(e.message, 'error'); } 
@@ -92,7 +91,7 @@ async function updateProjectStatus(projId, status) {
 }
 
 function deleteProject(projId) {
-    UI.confirm('프로젝트 삭제', '이 프로젝트와 관련된 모든 작업이 함께 삭제될 수 있습니다.', async () => {
+    UI.confirm('프로젝트 삭제', '이 프로젝트를 삭제하시겠습니까?<br>프로젝트와 관련된 모든 작업이 함께 삭제됩니다.', async () => {
         UI.setGlobalLoading(true);
         const res = await AppAPI.deleteProject(projId, AppAPI.getUser().username);
         if(res.success) { UI.showToast('프로젝트가 삭제되었습니다.'); loadAppData(); } else UI.showToast(res.message, 'error');
@@ -124,6 +123,7 @@ function initProject() {
                 : "저장 중..."
         );
         UI.setGlobalLoading(true);
+        
         try {
             let res;
             if (mode === "create") {

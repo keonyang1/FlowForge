@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initDragAndDrop();
     initAuth();
     initProject();
+    initTask();
 
     document.getElementById("global-search").addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase();

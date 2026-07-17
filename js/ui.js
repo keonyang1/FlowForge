@@ -94,7 +94,11 @@ const UI = {
         
         form.reset();
         form.dataset.mode = mode;
-        form.dataset.id = taskId || '';
+        if (taskId) {
+            form.dataset.id = taskId;
+        } else {
+            delete form.dataset.id;
+        }
 
         if (mode === 'edit') {
             title.textContent = '작업 수정';
@@ -102,6 +106,7 @@ const UI = {
             const task = currentTasks.find(t => t.id === taskId);
             if(task) {
                 document.getElementById('task-title').value = task.title;
+                document.getElementById('task-desc').value = task.description || '';
                 document.getElementById('task-project').value = task.project_id || '';
                 document.getElementById('task-priority').value = task.priority;
                 if(task.due_date) document.getElementById('task-date').value = getFormatDate(task.due_date);
@@ -130,7 +135,7 @@ const UI = {
     confirm(title, msg, onConfirm) {
         const modal = document.getElementById('confirm-modal');
         document.getElementById('confirm-title').textContent = title;
-        document.getElementById('confirm-msg').textContent = msg;
+        document.getElementById('confirm-msg').innerHTML  = msg;
         const btnOk = document.getElementById('btn-confirm-ok'), btnCancel = document.getElementById('btn-confirm-cancel');
         const newBtnOk = btnOk.cloneNode(true), newBtnCancel = btnCancel.cloneNode(true);
         btnOk.parentNode.replaceChild(newBtnOk, btnOk); btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);

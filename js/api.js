@@ -20,13 +20,12 @@ const AppAPI = {
     },
 
     // =========================
-    // Users
+    // Auth
     // =========================
     async register(username, password, nickname) {
         return await this.fetch({action: "register", username, password, nickname});
     },
 
-    // 로그인
     async login(username, password) {
         const result = await this.fetch({action: "login", username, password});
         if (result.success) {
@@ -38,37 +37,10 @@ const AppAPI = {
         return result;
     },
 
-    // 닉네임 변경
-    async updateProfile(username, currentPassword, nickname) {
-        return this.fetch({
-            action: "update_profile",
-            username,
-            current_password: currentPassword,
-            nickname
-        });
-    },
-
-    // 비밀번호 변경
-    async updatePassword(username, oldPassword, newPassword) {
-        return this.fetch({
-            action:"update_password",
-            username,
-            old_password:oldPassword,
-            new_password:newPassword
-        });
-    },
-
-    // 로그아웃
     logout() {
         localStorage.removeItem("flowforge_session");
     },
 
-    // 로그인 여부
-    isLoggedIn() {
-        return localStorage.getItem("flowforge_session") !== null;
-    },
-    
-    // 세션 가져오기
     getUser() {
         try {
             const session = localStorage.getItem(
@@ -91,11 +63,32 @@ const AppAPI = {
         }
     },
 
+    isLoggedIn() {
+        return localStorage.getItem("flowforge_session") !== null;
+    },
+
+    async updateProfile(username, currentPassword, nickname) {
+        return this.fetch({
+            action: "update_profile",
+            username,
+            current_password: currentPassword,
+            nickname
+        });
+    },
+
+    async updatePassword(username, oldPassword, newPassword) {
+        return this.fetch({
+            action:"update_password",
+            username,
+            old_password:oldPassword,
+            new_password:newPassword
+        });
+    },
+
 
     // =========================
-    // Projects
+    // Project
     // =========================
-
     async getProjects(userId) {
         return await this.fetch({
             action: "get_projects",
@@ -129,6 +122,48 @@ const AppAPI = {
         return await this.fetch({
             action: "delete_project",
             project_id: projectId,
+            user_id: userId
+        });
+    },
+
+
+    // =========================
+    // Task
+    // =========================
+    async getTasks(userId) {
+        return await this.fetch({
+            action: "get_tasks",
+            user_id: userId
+        });
+    },
+
+    async addTask(data) {
+        return await this.fetch({
+            action: "add_task",
+            ...data
+        });
+    },
+
+    async updateTask(data) {
+        return await this.fetch({
+            action: "update_task",
+            ...data
+        });
+    },
+
+    async updateTaskStatus(taskId, status, userId) {
+        return await this.fetch({
+            action: "update_task_status",
+            task_id: taskId,
+            user_id: userId,
+            status: status
+        });
+    },
+
+    async deleteTask(taskId, userId) {
+        return await this.fetch({
+            action: "delete_task",
+            task_id: taskId,
             user_id: userId
         });
     }

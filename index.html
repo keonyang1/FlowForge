@@ -126,6 +126,12 @@
             </div>
             <form id="form-task" data-mode="create" data-id="">
                 <div class="form-group"><label>작업 내용</label><input type="text" id="task-title" class="form-control" required autocomplete="off"></div>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label>설명 (선택)</label>
+                    </div>
+                    <textarea id="task-desc" class="form-control" rows="3" placeholder="작업에 대한 메모나 세부 내용을 입력하세요."></textarea>
+                </div>
                 <div class="form-group"><label>소속 프로젝트</label><select id="task-project" class="form-control"><option value="">선택 안함</option></select></div>
                 <div style="display: flex; gap: 1rem;">
                     <div class="form-group" style="flex: 1;"><label>중요도</label>
@@ -135,7 +141,7 @@
                             <option value="Low">낮음 (Low)</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1;"><label>마감일</label><input type="date" id="task-date" class="form-control"></div>
+                    <div class="form-group" style="flex: 1;"><label>마감일</label><input type="date" id="task-date" class="form-control" required></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="UI.closeModal('task-modal')">취소</button>
