@@ -85,6 +85,14 @@ const AppAPI = {
         });
     },
 
+    async uploadAvatar(username, image){
+        return await this.fetch({
+            action: "upload_avatar",
+            username,
+            image
+        });
+    },
+
     async deleteAccount(userId) {
         return await this.fetch({
             action: "delete_user",

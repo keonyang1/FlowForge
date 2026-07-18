@@ -7,6 +7,20 @@ function initAuth() {
     // 프로필 수정 모달 열기
     document.getElementById('btn-edit-profile').onclick = () => {
         const user = AppAPI.getUser();
+        const preview = document.getElementById("profile-avatar-preview");
+        const initial = document.getElementById("profile-avatar-initial");
+        if(user.avatar_url){
+            preview.src = user.avatar_url;
+            preview.style.display = "block";
+            initial.style.display = "none";
+
+        }else{
+            preview.style.display = "none";
+            initial.style.display = "block";
+            initial.textContent = user.nickname.charAt(0).toUpperCase();
+        }
+
+        document.getElementById("profile-avatar-file").value = "";
         if(user) {
             document.getElementById('prof-nickname').value = user.nickname;
             document.getElementById('prof-current-pw').value = '';
@@ -16,6 +30,26 @@ function initAuth() {
         UI.openModal('profile-modal');
         document.getElementById('profile-dropdown').classList.remove('show');
     };
+
+    document.getElementById("btn-change-avatar").onclick=() => {
+        document.getElementById("profile-avatar-file").click();
+    };
+
+    document.getElementById("profile-avatar-file").addEventListener("change",(e) => {
+        const file=e.target.files[0];
+        if(!file) return;
+        if(file.size>2*1024*1024){
+            UI.showToast("2MB 이하 이미지만 업로드 가능합니다.","warning");
+            return;
+        }
+        const reader=new FileReader();
+        reader.onload=() => {
+            document.getElementById("profile-avatar-preview").src=reader.result;
+            document.getElementById("profile-avatar-preview").style.display="block";
+            document.getElementById("profile-avatar-initial").style.display="none";
+        };
+        reader.readAsDataURL(file);
+    });
             
     // 프로필 수정 폼 제출
     document.getElementById('form-profile').onsubmit = async (e) => {
@@ -66,16 +100,32 @@ function initAuth() {
                 profileSuccess = true;
             }
 
+            // 3. 프로필 사진 업로드
+            const avatarFile = document.getElementById("profile-avatar-file").files[0];
+            if (avatarFile) {
+                const base64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        resolve(reader.result.split(",")[1]);
+                    };
+                    reader.readAsDataURL(avatarFile);
+                });
+                const avatarRes = await AppAPI.uploadAvatar(user.username, base64);
+                if (!avatarRes.success) throw new Error(avatarRes.message);
+                user.avatar_url = avatarRes.avatar_url;
+                profileSuccess = true;
+            }
+
+            // 변경사항 적용
             if (profileSuccess) {
                 user.nickname = newNickname;
                 localStorage.setItem("flowforge_session", JSON.stringify(user));
-                document.getElementById("header-nickname").textContent=user.nickname;
-                document.getElementById("dropdown-nickname").textContent=user.nickname;
-                document.getElementById("header-avatar-initial").textContent=
-                user.nickname.charAt(0).toUpperCase();
-                
-                UI.showToast('프로필이 성공적으로 업데이트 되었습니다.');
-                UI.closeModal('profile-modal');
+                document.getElementById("header-nickname").textContent = user.nickname;
+                document.getElementById("dropdown-nickname").textContent = user.nickname;
+                updateAvatarUI(user);
+                UI.showToast("프로필이 성공적으로 업데이트되었습니다.");
+                UI.closeModal("profile-modal");
+
             } else {
                  UI.showToast('변경된 내용이 없습니다.', 'warning');
                  UI.closeModal('profile-modal');
@@ -128,7 +178,7 @@ function initAuth() {
     if (user) {
         document.getElementById('auth-overlay').classList.remove('show');
         document.getElementById('header-nickname').textContent = user.nickname;
-        document.getElementById('header-avatar-initial').textContent = user.nickname.charAt(0).toUpperCase();
+        updateAvatarUI(user);
         document.getElementById('dropdown-nickname').textContent = user.nickname;
         document.getElementById('dropdown-username').textContent = `@${user.username}`;
         document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
@@ -148,7 +198,7 @@ function initAuth() {
             if(res.success) {
                 UI.showToast(`환영합니다, ${res.user.nickname}님!`);
                 document.getElementById('header-nickname').textContent = res.user.nickname;
-                document.getElementById('header-avatar-initial').textContent = res.user.nickname.charAt(0).toUpperCase();
+                updateAvatarUI(res.user);
                 document.getElementById('dropdown-nickname').textContent = res.user.nickname;
                 document.getElementById('dropdown-username').textContent = `@${res.user.username}`;
                 document.getElementById('dashboard-greeting').textContent = `${res.user.nickname}님, 환영합니다!`;
@@ -199,4 +249,41 @@ function initAuth() {
             } else { UI.showToast(res.message, 'error'); }
         } catch(e) { UI.showToast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = '계정 생성'; }
     };
+}
+
+function updateAvatarUI(user){
+    
+    console.log("updateAvatarUI", user);
+
+    const hasAvatar = !!user.avatar_url;
+
+    const headerImg = document.getElementById("header-avatar-img");
+    const headerText = document.getElementById("header-avatar-initial");
+
+    const dropdownImg = document.getElementById("dropdown-avatar-img");
+    const dropdownText = document.getElementById("dropdown-avatar-initial");
+
+    if(hasAvatar){
+
+        headerImg.src = user.avatar_url;
+        headerImg.style.display = "block";
+        headerText.style.display = "none";
+
+        dropdownImg.src = user.avatar_url;
+        dropdownImg.style.display = "block";
+        dropdownText.style.display = "none";
+
+    }else{
+
+        const initial = user.nickname.charAt(0).toUpperCase();
+
+        headerImg.style.display = "none";
+        headerText.style.display = "block";
+        headerText.textContent = initial;
+
+        dropdownImg.style.display = "none";
+        dropdownText.style.display = "block";
+        dropdownText.textContent = initial;
+
+    }
 }
