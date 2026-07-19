@@ -83,7 +83,7 @@ function initAuth() {
             ) {
                 const profileRes =
                     await AppAPI.updateProfile(
-                        user.username,
+                        user.user_id,
                         currentPw,
                         newNickname
                     );
@@ -95,7 +95,7 @@ function initAuth() {
 
             // 2. 비밀번호 변경 API 호출 로직
             if (newPw !== "") {
-                const pwRes = await AppAPI.updatePassword(user.username, currentPw, newPw);
+                const pwRes = await AppAPI.updatePassword(user.user_id, currentPw, newPw);
                 if (!pwRes.success) throw new Error(pwRes.message);
                 profileSuccess = true;
             }
@@ -110,7 +110,7 @@ function initAuth() {
                     };
                     reader.readAsDataURL(avatarFile);
                 });
-                const avatarRes = await AppAPI.uploadAvatar(user.username, base64);
+                const avatarRes = await AppAPI.uploadAvatar(user.user_id, base64);
                 if (!avatarRes.success) throw new Error(avatarRes.message);
                 user.avatar_url = avatarRes.avatar_url;
                 profileSuccess = true;
@@ -118,7 +118,6 @@ function initAuth() {
 
             // 변경사항 적용
             if (profileSuccess) {
-                user.nickname = newNickname;
                 localStorage.setItem("flowforge_session", JSON.stringify(user));
                 document.getElementById("header-nickname").textContent = user.nickname;
                 document.getElementById("dropdown-nickname").textContent = user.nickname;
@@ -151,7 +150,7 @@ function initAuth() {
             UI.setGlobalLoading(true);
             
             try {
-                /*const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
+                const res = await AppAPI.deleteAccount(AppAPI.getUser().user_id);
                 if(res.success) { 
                     UI.showToast('회원 탈퇴가 완료되었습니다.'); 
                     AppAPI.logout();
@@ -159,15 +158,6 @@ function initAuth() {
                     document.getElementById('auth-overlay').classList.add('show'); 
                 } else {
                     UI.showToast(res.message, 'error');
-                }*/
-                const res = await AppAPI.deleteAccount(AppAPI.getUser().username);
-                console.log("1", res);
-                if (res.success) {
-                    console.log("2 before logout", localStorage.getItem("flowforge_session"));
-                    AppAPI.logout();
-                    console.log("3 after logout", localStorage.getItem("flowforge_session"));
-                    resetAppUI();
-                    document.getElementById("auth-overlay").classList.add("show");
                 }
             } catch(err) { UI.showToast(err.message, 'error'); }
             finally { UI.setGlobalLoading(false); }
@@ -180,7 +170,7 @@ function initAuth() {
         document.getElementById('header-nickname').textContent = user.nickname;
         updateAvatarUI(user);
         document.getElementById('dropdown-nickname').textContent = user.nickname;
-        document.getElementById('dropdown-username').textContent = `@${user.username}`;
+        document.getElementById('dropdown-user-id').textContent = `@${user.user_id}`;
         document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
         loadAppData();
     }
@@ -189,71 +179,93 @@ function initAuth() {
     document.getElementById('link-to-register').onclick = (e) => { e.preventDefault(); document.getElementById('view-login').classList.remove('active'); document.getElementById('view-register').classList.add('active'); };
     document.getElementById('link-to-login').onclick = (e) => { e.preventDefault(); document.getElementById('view-register').classList.remove('active'); document.getElementById('view-login').classList.add('active'); };
 
-    // 로그인 및 회원가입 폼 제출 로직 (비밀번호 확인 추가됨)
-    document.getElementById('form-login').onsubmit = async (e) => {
-        e.preventDefault(); 
-        const btn = document.getElementById('btn-login'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 로그인 중...';
+    // 로그인
+    document.getElementById("form-login").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-login");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 로그인 중...';
         try {
-            const res = await AppAPI.login(document.getElementById('login-id').value, document.getElementById('login-pw').value);
-            if(res.success) {
-                UI.showToast(`환영합니다, ${res.user.nickname}님!`);
-                document.getElementById('header-nickname').textContent = res.user.nickname;
-                updateAvatarUI(res.user);
-                document.getElementById('dropdown-nickname').textContent = res.user.nickname;
-                document.getElementById('dropdown-username').textContent = `@${res.user.username}`;
-                document.getElementById('dashboard-greeting').textContent = `${res.user.nickname}님, 환영합니다!`;
-                document.getElementById('auth-overlay').classList.remove('show');
-                loadAppData();
-            } else { UI.showToast(res.message, 'error'); }
-        } catch(e) { UI.showToast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = '로그인'; }
+            const userId = document.getElementById("login-id").value.trim();
+            const password = document.getElementById("login-pw").value;
+            const res = await AppAPI.login(userId, password);
+            if (!res.success) {
+                UI.showToast(res.message, "error");
+                return;
+            }
+            UI.showToast(`환영합니다, ${res.user.nickname}님!`);
+            document.getElementById("header-nickname").textContent = res.user.nickname;
+            document.getElementById("dropdown-nickname").textContent = res.user.nickname;
+            document.getElementById("dropdown-user-id").textContent = `@${res.user.user_id}`;
+            document.getElementById("dashboard-greeting").textContent = `${res.user.nickname}님, 환영합니다!`;
+            updateAvatarUI(res.user);
+            document.getElementById("auth-overlay").classList.remove("show");
+            loadAppData();
+        } catch (err) {
+            UI.showToast(err.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "로그인";
+        }
     };
 
-    document.getElementById('form-register').onsubmit = async (e) => {
-        e.preventDefault(); 
-        
-        const id = document.getElementById("reg-id").value.trim();
+    // 회원가입
+    document.getElementById("form-register").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-register");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 처리중...';
+        const userId = document.getElementById("reg-id").value.trim();
         const nickname = document.getElementById("reg-nickname").value.trim();
-        const pw = document.getElementById('reg-pw').value;
-        const pwConfirm = document.getElementById('reg-pw-confirm').value;
-        
-        if(!validateUsername(id)){
-            UI.showToast("아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.", "warning");
-            return;
-        }
-
-        if(!validatePassword(pw)){
-            UI.showToast("비밀번호는 영문 대/소문자, 숫자, 특수문자만 사용할 수 있으며 6자 이상이어야 합니다.", "warning");
-            return;
-        }
-
-        if(nickname===""){
-            UI.showToast("닉네임을 입력해주세요.", "warning");
-            return;
-        }
-
-        // 비밀번호 확인 일치 검증
-        if (pw !== pwConfirm) {
-            UI.showToast('비밀번호가 일치하지 않습니다.', 'warning');
-            return;
-        }
-
-        const btn = document.getElementById('btn-register'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 처리중...';
+        const password = document.getElementById("reg-pw").value;
+        const passwordConfirm = document.getElementById("reg-pw-confirm").value;
         try {
-            const res = await AppAPI.register(document.getElementById("reg-id").value.trim(), pw, document.getElementById("reg-nickname").value.trim());
-            if(res.success) {
-                document.getElementById("link-to-login").click();
-                document.getElementById("login-id").value=id;
-                document.getElementById("login-pw").value="";
-                document.getElementById("login-pw").focus();
-                UI.showToast("회원가입이 완료되었습니다. 비밀번호를 입력하여 로그인해주세요.");
-            } else { UI.showToast(res.message, 'error'); }
-        } catch(e) { UI.showToast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = '계정 생성'; }
+            if (!validateUserId(userId)) {
+                UI.showToast(
+                    "아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.",
+                    "warning"
+                );
+                return;
+            }
+            if (!validatePassword(password)) {
+                UI.showToast(
+                    "비밀번호는 영문 대/소문자, 숫자, 특수문자만 사용할 수 있으며 6자 이상이어야 합니다.",
+                    "warning"
+                );
+                return;
+            }
+            if (nickname === "") {
+                UI.showToast("닉네임을 입력해주세요.", "warning");
+                return;
+            }
+            if (password !== passwordConfirm) {
+                UI.showToast("비밀번호가 일치하지 않습니다.", "warning");
+                return;
+            }
+            const res = await AppAPI.register(
+                userId,
+                password,
+                nickname
+            );
+            if (!res.success) {
+                UI.showToast(res.message, "error");
+                return;
+            }
+            document.getElementById("link-to-login").click();
+            document.getElementById("login-id").value = userId;
+            document.getElementById("login-pw").value = "";
+            document.getElementById("login-pw").focus();
+            UI.showToast("회원가입이 완료되었습니다. 비밀번호를 입력하여 로그인해주세요.");
+        } catch (err) {
+            UI.showToast(err.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "계정 생성";
+        }
     };
 }
 
 function updateAvatarUI(user){
-    
-    console.log("updateAvatarUI", user);
 
     const hasAvatar = !!user.avatar_url;
 

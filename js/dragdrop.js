@@ -25,7 +25,7 @@ function initDragAndDrop() {
                 const res = await AppAPI.updateTaskStatus(
                     taskId,
                     newStatus,
-                    AppAPI.getUser().username
+                    AppAPI.getUser().user_id
                 );
                 if (!res.success) {
                     throw new Error(res.message);

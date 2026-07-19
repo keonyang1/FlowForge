@@ -22,12 +22,21 @@ const AppAPI = {
     // =========================
     // Auth
     // =========================
-    async register(username, password, nickname) {
-        return await this.fetch({action: "register", username, password, nickname});
+    async register(userId, password, nickname) {
+        return await this.fetch({
+            action: "register",
+            user_id: userId,
+            password,
+            nickname
+        });
     },
 
-    async login(username, password) {
-        const result = await this.fetch({action: "login", username, password});
+    async login(userId, password) {
+        const result = await this.fetch({
+            action: "login",
+            user_id: userId,
+            password
+        });
         if (result.success) {
             localStorage.setItem(
                 "flowforge_session",
@@ -43,14 +52,12 @@ const AppAPI = {
 
     getUser() {
         try {
-            const session = localStorage.getItem(
-                "flowforge_session"
-            );
+            const session = localStorage.getItem("flowforge_session");
             if (!session) return null;
             const user = JSON.parse(session);
             if (
                 !user ||
-                typeof user.username !== "string" ||
+                typeof user.user_id !== "string" ||
                 typeof user.nickname !== "string"
             ) {
                 this.logout();
@@ -67,28 +74,28 @@ const AppAPI = {
         return localStorage.getItem("flowforge_session") !== null;
     },
 
-    async updateProfile(username, currentPassword, nickname) {
+    async updateProfile(userId, currentPassword, nickname) {
         return this.fetch({
             action: "update_profile",
-            username,
+            user_id: userId,
             current_password: currentPassword,
             nickname
         });
     },
 
-    async updatePassword(username, oldPassword, newPassword) {
+    async updatePassword(userId, oldPassword, newPassword) {
         return this.fetch({
-            action:"update_password",
-            username,
-            old_password:oldPassword,
-            new_password:newPassword
+            action: "update_password",
+            user_id: userId,
+            old_password: oldPassword,
+            new_password: newPassword
         });
     },
 
-    async uploadAvatar(username, image){
+    async uploadAvatar(userId, image) {
         return await this.fetch({
             action: "upload_avatar",
-            username,
+            user_id: userId,
             image
         });
     },
@@ -99,7 +106,6 @@ const AppAPI = {
             user_id: userId
         });
     },
-
 
     // =========================
     // Project
@@ -141,7 +147,6 @@ const AppAPI = {
         });
     },
 
-
     // =========================
     // Task
     // =========================
@@ -171,7 +176,7 @@ const AppAPI = {
             action: "update_task_status",
             task_id: taskId,
             user_id: userId,
-            status: status
+            status
         });
     },
 

@@ -12,7 +12,7 @@ async function loadAppData() {
     if(!user) return;
     UI.setGlobalLoading(true);
     try {
-        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.username), AppAPI.getTasks(user.username)]);
+        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.user_id), AppAPI.getTasks(user.user_id)]);
         if (pRes.success) currentProjects = pRes.projects;
         if (tRes.success) currentTasks = tRes.tasks;
 
@@ -108,7 +108,7 @@ async function updateProjectStatus(projId, status) {
 function deleteProject(projId) {
     UI.confirm('프로젝트 삭제', '이 프로젝트를 삭제하시겠습니까?<br>프로젝트와 관련된 모든 작업이 함께 삭제됩니다.', async () => {
         UI.setGlobalLoading(true);
-        const res = await AppAPI.deleteProject(projId, AppAPI.getUser().username);
+        const res = await AppAPI.deleteProject(projId, AppAPI.getUser().user_id);
         if(res.success) { UI.showToast('프로젝트가 삭제되었습니다.'); loadAppData(); } else UI.showToast(res.message, 'error');
         UI.setGlobalLoading(false);
     });
@@ -128,7 +128,7 @@ function initProject() {
             description: document.getElementById("proj-desc").value.trim(),
             status: document.getElementById("proj-status").value,
             due_date: document.getElementById("proj-date").value,
-            user_id: AppAPI.getUser().username
+            user_id: AppAPI.getUser().user_id
         };
 
         UI.lockButton(

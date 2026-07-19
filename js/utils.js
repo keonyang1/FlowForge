@@ -15,9 +15,9 @@ function formatFriendlyDate(dateStr) {
     return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
-function validateUsername(username) {
-    username = username.trim();
-    return AUTH.USERNAME_REGEX.test(username);
+function validateUserId(userId) {
+    userId = userId.trim();
+    return AUTH.USER_ID_REGEX.test(userId);
 }
 
 function validatePassword(password) {

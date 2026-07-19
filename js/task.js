@@ -60,7 +60,7 @@ function renderTasks() {
 function deleteTask(taskId) {
     UI.confirm('작업 삭제', '이 작업을 삭제하시겠습니까?<br>삭제된 작업은 복구할 수 없습니다.', async () => {
         UI.setGlobalLoading(true);
-        const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().username);
+        const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().user_id);
         if(res.success) { UI.showToast('작업이 삭제되었습니다.'); loadAppData(); } else UI.showToast(res.message, 'error');
         UI.setGlobalLoading(false);
     });
@@ -81,7 +81,7 @@ function initTask() {
             priority: document.getElementById("task-priority").value,
             due_date: document.getElementById("task-date").value,
             status: "To Do",
-            user_id: AppAPI.getUser().username
+            user_id: AppAPI.getUser().user_id
         };
 
         UI.lockButton(
