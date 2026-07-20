@@ -14,3 +14,19 @@ const AUTH = {
     USER_ID_MIN: 4,
     PASSWORD_MIN: 6
 };
+
+const RESERVED_USER_IDS = [
+    "admin",
+    "administrator",
+    "root",
+    "system",
+    "owner",
+    "master",
+    "flowforge",
+    "api",
+    "support",
+    "staff",
+    "guest",
+    "null",
+    "undefined"
+];
