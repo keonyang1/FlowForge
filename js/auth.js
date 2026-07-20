@@ -292,6 +292,13 @@ function initAuth() {
             updateAvatarUI(res.user);
             document.getElementById("auth-overlay").classList.remove("show");
             loadAppData();
+            if(!localStorage.getItem("flowforge_help_seen")){
+                setTimeout(()=>{
+                    showHelpPage(1);
+                    UI.openModal("help-modal");
+                },500);
+                localStorage.setItem("flowforge_help_seen","true");
+            }
         } catch (err) {
             UI.showToast(err.message, "error");
         } finally {
