@@ -242,7 +242,7 @@ function initAuth() {
 
     // 로그아웃 로직
     document.getElementById('btn-logout').onclick = () => { 
-        AppAPI.logout(); 
+        AppAPI.logout();
         document.getElementById('profile-dropdown').classList.remove('show'); 
         resetAppUI();
         document.getElementById('auth-overlay').classList.add('show'); 
@@ -257,6 +257,8 @@ function initAuth() {
         document.getElementById('dropdown-user-id').textContent = `@${user.user_id}`;
         document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
         loadAppData();
+        const savedPage = sessionStorage.getItem("flowforge_current_page") || "dashboard";
+        UI.switchPage(savedPage);
         if(!localStorage.getItem("flowforge_help_seen")){
             setTimeout(()=>{
                 showHelpPage(1);
@@ -292,6 +294,8 @@ function initAuth() {
             updateAvatarUI(res.user);
             document.getElementById("auth-overlay").classList.remove("show");
             loadAppData();
+            const savedPage = sessionStorage.getItem("flowforge_current_page") || "dashboard";
+            UI.switchPage(savedPage);
             if(!localStorage.getItem("flowforge_help_seen")){
                 setTimeout(()=>{
                     showHelpPage(1);

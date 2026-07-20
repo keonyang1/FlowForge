@@ -48,6 +48,7 @@ const AppAPI = {
 
     logout() {
         localStorage.removeItem("flowforge_session");
+        sessionStorage.removeItem("flowforge_current_page");
     },
 
     getUser() {

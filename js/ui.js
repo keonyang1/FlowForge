@@ -24,6 +24,7 @@ const UI = {
         
         const searchBox = document.getElementById('global-search');
         if (searchBox) { searchBox.value = ''; searchBox.dispatchEvent(new Event('input')); }
+        sessionStorage.setItem("flowforge_current_page", pageId);
     },
     openModal(id) { document.getElementById(id).classList.add('show'); },
     

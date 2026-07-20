@@ -7,23 +7,6 @@ window.confirmCompleteProject = function(projId) {
     });
 };
 
-async function loadAppData() {
-    const user = AppAPI.getUser();
-    if(!user) return;
-    UI.setGlobalLoading(true);
-    try {
-        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.user_id), AppAPI.getTasks(user.user_id)]);
-        if (pRes.success) currentProjects = pRes.projects;
-        if (tRes.success) currentTasks = tRes.tasks;
-
-        renderProjects();
-        renderTasks();
-        renderDashboard();
-        renderAnalytics();
-    } catch (e) { UI.showToast(e.message, 'error'); } 
-    finally { UI.setGlobalLoading(false); }
-}
-
 function renderProjects() {
     const container = document.getElementById('project-container');
     container.innerHTML = '';

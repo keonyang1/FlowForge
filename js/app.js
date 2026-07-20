@@ -36,7 +36,8 @@ function resetAppUI() {
             
     document.getElementById('header-nickname').textContent = '로딩중...';
     document.getElementById('header-avatar-initial').textContent = 'U';
-            
+    
+    sessionStorage.removeItem("flowforge_current_page");
     UI.switchPage('dashboard');
     document.getElementById('view-register').classList.remove('active');
     document.getElementById('view-login').classList.add('active');
@@ -47,4 +48,21 @@ function resetAppUI() {
     document.getElementById('form-profile').reset();
     document.querySelectorAll('.pw-input-wrapper input').forEach(input => { input.type = 'password'; });
     document.querySelectorAll('.pw-toggle-btn i').forEach(icon => { icon.className = 'fas fa-eye'; });
+}
+
+async function loadAppData() {
+    const user = AppAPI.getUser();
+    if(!user) return;
+    UI.setGlobalLoading(true);
+    try {
+        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.user_id), AppAPI.getTasks(user.user_id)]);
+        if (pRes.success) currentProjects = pRes.projects;
+        if (tRes.success) currentTasks = tRes.tasks;
+
+        renderProjects();
+        renderTasks();
+        renderDashboard();
+        renderAnalytics();
+    } catch (e) { UI.showToast(e.message, 'error'); } 
+    finally { UI.setGlobalLoading(false); }
 }
