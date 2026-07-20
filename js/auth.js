@@ -1,4 +1,26 @@
+let currentHelpPage = 1;
+const TOTAL_HELP_PAGES = 7;
+
 function initAuth() {
+
+    document.getElementById("btn-help").onclick=()=>{
+        showHelpPage(1);
+        UI.openModal("help-modal");
+    };
+
+    document.getElementById("help-prev").onclick=()=>{
+        if(currentHelpPage>1){
+            showHelpPage(currentHelpPage-1);
+        }
+    };
+
+    document.getElementById("help-next").onclick=()=>{
+        if(currentHelpPage===TOTAL_HELP_PAGES){
+            UI.closeModal("help-modal");
+            return;
+        }
+        showHelpPage(currentHelpPage+1);
+    };
 
     // 프로필 드롭다운 관리
     document.getElementById('btn-profile-trigger').onclick = (e) => { e.stopPropagation(); document.getElementById('profile-dropdown').classList.toggle('show'); };
@@ -235,6 +257,13 @@ function initAuth() {
         document.getElementById('dropdown-user-id').textContent = `@${user.user_id}`;
         document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
         loadAppData();
+        if(!localStorage.getItem("flowforge_help_seen")){
+            setTimeout(()=>{
+                showHelpPage(1);
+                UI.openModal("help-modal");
+            },500);
+            localStorage.setItem("flowforge_help_seen","true");
+        }
     }
 
     // 인증 UI 전환
@@ -287,17 +316,11 @@ function initAuth() {
                 return;
             }
             if (!validateUserId(userId)) {
-                UI.showToast(
-                    "아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.",
-                    "warning"
-                );
+                UI.showToast("아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.", "warning");
                 return;
             }
             if (!validatePassword(password)) {
-                UI.showToast(
-                    "비밀번호는 영문 대/소문자, 숫자, 특수문자만 사용할 수 있으며 6자 이상이어야 합니다.",
-                    "warning"
-                );
+                UI.showToast("비밀번호는 영문 대/소문자, 숫자, 특수문자만 사용할 수 있으며 6자 이상이어야 합니다.", "warning");
                 return;
             }
             if (nickname === "") {
@@ -363,5 +386,31 @@ function updateAvatarUI(user){
         dropdownText.style.display = "block";
         dropdownText.textContent = initial;
 
+    }
+}
+
+function showHelpPage(page){
+
+    currentHelpPage = page;
+
+    const pages = document.querySelectorAll(".help-page");
+    const dots = document.querySelectorAll("#help-indicator span");
+
+    pages.forEach((p,index)=>{
+        p.classList.toggle("active",index===page-1);
+    });
+
+    dots.forEach((d,index)=>{
+        d.classList.toggle("active",index===page-1);
+    });
+
+    document.getElementById("help-prev").disabled = page===1;
+
+    const nextBtn=document.getElementById("help-next");
+
+    if(page===TOTAL_HELP_PAGES){
+        nextBtn.innerHTML='닫기 <i class="fas fa-check"></i>';
+    }else{
+        nextBtn.innerHTML='다음 <i class="fas fa-chevron-right"></i>';
     }
 }

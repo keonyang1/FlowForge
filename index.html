@@ -248,10 +248,7 @@
                 </button>
             </div>
             <form id="form-delete-account">
-                <p style="margin-bottom:1rem;color:var(--text-secondary);line-height:1.6;">
-                    회원 탈퇴 시 모든 프로젝트와 작업이 영구 삭제됩니다.<br>
-                    삭제된 데이터는 복구할 수 없습니다.
-                </p>
+                <p style="margin-bottom:1rem;color:var(--text-secondary);line-height:1.6;">회원 탈퇴 시 모든 프로젝트와 작업이 영구 삭제됩니다.<br>삭제된 데이터는 복구할 수 없습니다.</p>
                 <div class="form-group">
                     <label>현재 비밀번호</label>
                     <div class="pw-input-wrapper">
@@ -266,6 +263,242 @@
                     <button type="submit" class="btn-primary" id="btn-submit-delete-account" style="background:var(--danger-color);">회원 탈퇴</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 8. 도움말 모달 -->
+    <div id="help-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'help-modal')">
+        <div class="modal-content help-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-circle-question"></i> FlowForge 사용 가이드</h3>
+                <button class="modal-close" onclick="UI.closeModal('help-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="help-body">
+
+                <!-- PAGE 1 -->
+                <div class="help-page active" data-page="1">
+                    <div class="help-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>FlowForge가 무엇인가요?</h3>
+                    <p>
+                        FlowForge는 프로젝트와 작업(Task)을 함께 관리하는
+                        프로젝트 관리 서비스입니다.
+                    </p>
+                    <p>
+                        해야 할 일을 프로젝트별로 정리하고,
+                        작업의 진행 상태를 한눈에 확인할 수 있습니다.
+                    </p>
+                </div>
+
+                <!-- PAGE 2 -->
+                <div class="help-page" data-page="2">
+
+                    <div class="help-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+
+                    <h3>프로젝트란?</h3>
+
+                    <p>
+                        프로젝트는 하나의 큰 목표입니다.
+                    </p>
+
+                    <p>예를 들어</p>
+
+                    <ul class="help-list">
+                        <li>웹사이트 제작</li>
+                        <li>졸업 작품</li>
+                        <li>게임 개발</li>
+                    </ul>
+
+                    <p>
+                        하나의 프로젝트 안에 여러 개의 작업(Task)을 넣어
+                        관리할 수 있습니다.
+                    </p>
+
+                </div>
+
+                <!-- PAGE 3 -->
+                <div class="help-page" data-page="3">
+
+                    <div class="help-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+
+                    <h3>작업(Task)이란?</h3>
+
+                    <p>
+                        작업은 프로젝트를 완성하기 위한
+                        세부 업무입니다.
+                    </p>
+
+                    <div class="help-example">
+
+                        <strong>예시</strong>
+
+                        <p>프로젝트 : 홈페이지 제작</p>
+
+                        <ul class="help-list">
+                            <li>메인 화면 만들기</li>
+                            <li>로그인 기능 개발</li>
+                            <li>DB 연결</li>
+                            <li>디자인 수정</li>
+                        </ul>
+
+                    </div>
+
+                </div>
+
+                <!-- PAGE 4 -->
+                <div class="help-page" data-page="4">
+
+                    <div class="help-icon">
+                        <i class="fas fa-diagram-project"></i>
+                    </div>
+
+                    <h3>프로젝트와 작업의 관계</h3>
+
+                    <div class="help-example">
+
+                        <strong>프로젝트</strong>
+
+                        <div style="margin-top:10px;">
+                            📁 홈페이지 제작
+                        </div>
+
+                        <div style="margin-left:18px; margin-top:10px; line-height:1.9;">
+                            ├ 로그인 기능<br>
+                            ├ 회원가입 기능<br>
+                            ├ 게시판 제작<br>
+                            └ 디자인 수정
+                        </div>
+
+                    </div>
+
+                    <p style="margin-top:15px;">
+                        프로젝트는 큰 목표,
+                        작업은 그 목표를 이루기 위한 세부 업무입니다.
+                    </p>
+
+                </div>
+
+                <!-- PAGE 5 -->
+                <div class="help-page" data-page="5">
+
+                    <div class="help-icon">
+                        <i class="fas fa-columns"></i>
+                    </div>
+
+                    <h3>작업 보드 사용법</h3>
+
+                    <p>
+                        작업은 드래그해서 상태를 변경할 수 있습니다.
+                    </p>
+
+                    <div class="help-example">
+
+                        📝 해야 할 일
+
+                        <br>↓
+
+                        <br>⚙ 진행 중
+
+                        <br>↓
+
+                        <br>✅ 완료됨
+
+                    </div>
+
+                    <p style="margin-top:15px;">
+                        작업을 마우스로 끌어 원하는 칸에 놓으면
+                        자동으로 저장됩니다.
+                    </p>
+
+                </div>
+
+                <!-- PAGE 6 -->
+                <div class="help-page" data-page="6">
+
+                    <div class="help-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+
+                    <h3>통계 리포트</h3>
+
+                    <p>
+                        프로젝트와 작업의 진행 상황을
+                        자동으로 분석하여 보여줍니다.
+                    </p>
+
+                    <ul class="help-list">
+                        <li>프로젝트 진행률</li>
+                        <li>작업 상태 분포</li>
+                        <li>완료 현황</li>
+                    </ul>
+
+                </div>
+
+                <!-- PAGE 7 -->
+                <div class="help-page" data-page="7">
+
+                    <div class="help-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+
+                    <h3>프로필 관리</h3>
+
+                    <p>
+                        우측 상단 프로필 메뉴에서
+                    </p>
+
+                    <ul class="help-list">
+                        <li>닉네임 변경</li>
+                        <li>프로필 사진 변경</li>
+                        <li>비밀번호 변경</li>
+                        <li>회원 탈퇴</li>
+                    </ul>
+
+                    <p>
+                        를 수행할 수 있습니다.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="help-footer">
+
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    id="help-prev">
+                    <i class="fas fa-chevron-left"></i>
+                    이전
+                </button>
+
+                <div id="help-indicator" class="help-indicator">
+
+                    <span class="active"></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-primary"
+                    id="help-next">
+                    다음
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+
+            </div>
+
         </div>
     </div>
 
@@ -294,6 +527,7 @@
                     <i class="fas fa-cloud text-success" style="color: var(--success-color);"></i> 연동됨
                 </div>
                 <button class="icon-btn" id="btn-theme-toggle" title="테마 변경"><i class="fas fa-moon"></i></button>
+                <button class="icon-btn" id="btn-help" title="도움말"><i class="fas fa-circle-question"></i></button>
 
                 <div class="profile-wrapper">
                     <button class="profile-btn" id="btn-profile-trigger">
