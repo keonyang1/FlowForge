@@ -31,6 +31,7 @@ function initDragAndDrop() {
                     throw new Error(res.message);
                 }
                 UI.showToast(`상태가 변경되었습니다: ${newStatus}`);
+                await loadAppData();
             } catch (err) {
                 task.status = oldStatus;
                 renderTasks();
