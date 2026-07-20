@@ -278,16 +278,14 @@ function initAuth() {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 처리중...';
         const userId = document.getElementById("reg-id").value.trim();
-        if (RESERVED_USER_IDS.includes(userId.toLowerCase())) {
-            UI.showToast("사용할 수 없는 아이디입니다.", "warning");
-            btn.disabled = false;
-            btn.textContent = "계정 생성";
-            return;
-        }
         const nickname = document.getElementById("reg-nickname").value.trim();
         const password = document.getElementById("reg-pw").value;
         const passwordConfirm = document.getElementById("reg-pw-confirm").value;
         try {
+            if (RESERVED_USER_IDS.includes(userId.toLowerCase())) {
+                UI.showToast("사용할 수 없는 아이디입니다.", "warning");
+                return;
+            }
             if (!validateUserId(userId)) {
                 UI.showToast(
                     "아이디는 영문 소문자(a-z), 숫자(0-9), 언더바(_)만 사용할 수 있으며 4자 이상이어야 합니다.",
