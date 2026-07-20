@@ -74,11 +74,10 @@ const AppAPI = {
         return localStorage.getItem("flowforge_session") !== null;
     },
 
-    async updateProfile(userId, currentPassword, nickname) {
+    async updateProfile(userId, nickname) {
         return this.fetch({
             action: "update_profile",
             user_id: userId,
-            current_password: currentPassword,
             nickname
         });
     },
@@ -100,10 +99,18 @@ const AppAPI = {
         });
     },
 
-    async deleteAccount(userId) {
-        return await this.fetch({
-            action: "delete_user",
+    async removeAvatar(userId) {
+        return this.fetch({
+            action: "remove_avatar",
             user_id: userId
+        });
+    },
+
+    async deleteAccount(userId, password) {
+        return this.fetch({
+            action: "delete_user",
+            user_id: userId,
+            password
         });
     },
 

@@ -90,12 +90,15 @@
             <form id="form-project" data-mode="create" data-id="">
                 <div class="form-group">
                     <label>프로젝트 이름</label>
-                    <input type="text" id="proj-title" class="form-control" placeholder="예: 2분기 소셜 미디어 캠페인" required>
+                    <input type="text" id="proj-title" class="form-control" placeholder="예: 프로젝트 관리 웹사이트" required>
                 </div>
                 
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label style="margin: 0;">설명 (선택)</label>
+                        <!--<button type="button" class="btn-secondary" id="btn-ai-desc" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: var(--accent-color); color: var(--accent-color);">
+                            <i class="fas fa-magic"></i> AI 자동 요약
+                        </button>-->
                     </div>
                     <textarea id="proj-desc" class="form-control" rows="3" placeholder="목표와 주요 내용을 적어주세요. AI 버튼을 누르면 제목을 기반으로 자동으로 작성됩니다."></textarea>
                 </div>
@@ -152,61 +155,260 @@
     </div>
 
     <!-- 5. 프로필 수정 모달 -->
-    <div id="profile-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'profile-modal')">
-        <div class="modal-content" style="max-width: 400px;">
+    <div id="profile-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'profile-modal')">
+        <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
-                <h3 id="profile-modal-title">프로필 수정</h3>
-                <button class="modal-close" onclick="UI.closeModal('profile-modal')"><i class="fas fa-times"></i></button>
+                <h3>프로필 수정</h3>
+                <button class="modal-close" onclick="UI.closeModal('profile-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+
             <form id="form-profile">
+
                 <div class="form-group" style="text-align:center;">
+
                     <div class="profile-avatar-editor">
-                        <img id="profile-avatar-preview"
-                            src=""
-                            style="display:none;">
+                        <img id="profile-avatar-preview" src="" style="display:none;">
                         <span id="profile-avatar-initial">U</span>
                     </div>
+
                     <input
                         type="file"
                         id="profile-avatar-file"
                         accept="image/png,image/jpeg,image/webp"
                         style="display:none;">
+
+                    <div style="display:flex;justify-content:center;gap:.5rem;margin-top:12px;flex-wrap:wrap;">
+
+                        <button
+                            type="button"
+                            class="btn-secondary"
+                            id="btn-change-avatar">
+                            <i class="fas fa-image"></i>
+                            사진 변경
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn-secondary text-danger"
+                            id="btn-remove-avatar">
+                            <i class="fas fa-trash"></i>
+                            사진 삭제
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label>닉네임</label>
+
+                    <input
+                        type="text"
+                        id="prof-nickname"
+                        class="form-control"
+                        maxlength="20"
+                        required>
+                </div>
+
+                <div class="modal-footer">
                     <button
                         type="button"
                         class="btn-secondary"
-                        id="btn-change-avatar"
-                        style="margin-top:12px;">
-                        프로필 사진 변경
+                        onclick="UI.closeModal('profile-modal')">
+                        취소
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        id="btn-submit-profile">
+                        저장
                     </button>
                 </div>
+
+            </form>
+
+            <hr style="margin:1.5rem 0;">
+
+            <div style="display:flex;flex-direction:column;gap:.75rem;">
+
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    id="btn-open-password-modal">
+                    <i class="fas fa-key"></i>
+                    비밀번호 변경
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-secondary text-danger"
+                    id="btn-open-delete-modal">
+                    <i class="fas fa-user-times"></i>
+                    회원 탈퇴
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 6. 비밀번호 변경 -->
+    <div id="password-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'password-modal')">
+        <div class="modal-content" style="max-width:420px;">
+
+            <div class="modal-header">
+                <h3>비밀번호 변경</h3>
+
+                <button class="modal-close" onclick="UI.closeModal('password-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="form-password">
+
                 <div class="form-group">
-                    <label>새 닉네임</label>
-                    <input type="text" id="prof-nickname" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>현재 비밀번호 (필수)</label>
+
+                    <label>현재 비밀번호</label>
+
                     <div class="pw-input-wrapper">
-                        <input type="password" id="prof-current-pw" class="form-control" style="padding-right: 2.5rem;" placeholder="정보 수정을 위해 입력해주세요">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-current-pw', this)"><i class="fas fa-eye"></i></button>
+                        <input
+                            type="password"
+                            id="pw-current"
+                            class="form-control"
+                            required
+                            style="padding-right:2.5rem;">
+
+                        <button
+                            type="button"
+                            class="pw-toggle-btn"
+                            onclick="UI.togglePasswordVisibility('pw-current',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+
                 </div>
+
                 <div class="form-group">
-                    <label>새 비밀번호 (선택)</label>
+
+                    <label>새 비밀번호</label>
+
                     <div class="pw-input-wrapper">
-                        <input type="password" id="prof-new-pw" class="form-control" style="padding-right: 2.5rem;" placeholder="변경 시에만 입력하세요">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-new-pw', this)"><i class="fas fa-eye"></i></button>
+                        <input
+                            type="password"
+                            id="pw-new"
+                            class="form-control"
+                            required
+                            style="padding-right:2.5rem;">
+
+                        <button
+                            type="button"
+                            class="pw-toggle-btn"
+                            onclick="UI.togglePasswordVisibility('pw-new',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+
                 </div>
+
                 <div class="form-group">
+
                     <label>새 비밀번호 확인</label>
+
                     <div class="pw-input-wrapper">
-                        <input type="password" id="prof-new-pw-confirm" class="form-control" style="padding-right: 2.5rem;">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('prof-new-pw-confirm', this)"><i class="fas fa-eye"></i></button>
+                        <input
+                            type="password"
+                            id="pw-new-confirm"
+                            class="form-control"
+                            required
+                            style="padding-right:2.5rem;">
+
+                        <button
+                            type="button"
+                            class="pw-toggle-btn"
+                            onclick="UI.togglePasswordVisibility('pw-new-confirm',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('profile-modal')">취소</button>
-                    <button type="submit" class="btn-primary" id="btn-submit-profile">변경사항 저장</button>
+
+                    <button
+                        type="button"
+                        class="btn-secondary"
+                        onclick="UI.closeModal('password-modal')">
+                        취소
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        id="btn-submit-password">
+                        변경
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- 7. 회원 탈퇴 -->
+    <div id="delete-account-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'delete-account-modal')">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h3>회원 탈퇴</h3>
+                <button class="modal-close" onclick="UI.closeModal('delete-account-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="form-delete-account">
+                <p style="margin-bottom:1rem;color:var(--text-secondary);line-height:1.6;">
+                    회원 탈퇴 시 모든 프로젝트와 작업이 영구 삭제됩니다.<br>
+                    삭제된 데이터는 복구할 수 없습니다.
+                </p>
+                <div class="form-group">
+                    <label>현재 비밀번호</label>
+                    <div class="pw-input-wrapper">
+                        <input
+                            type="password"
+                            id="delete-current-password"
+                            class="form-control"
+                            required
+                            style="padding-right:2.5rem;">
+
+                        <button
+                            type="button"
+                            class="pw-toggle-btn"
+                            onclick="UI.togglePasswordVisibility('delete-current-password',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn-secondary"
+                        onclick="UI.closeModal('delete-account-modal')">
+                        취소
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        id="btn-submit-delete-account"
+                        style="background:var(--danger-color);">
+                        회원 탈퇴
+                    </button>
                 </div>
             </form>
         </div>
@@ -261,7 +463,6 @@
                         </div>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="btn-edit-profile"><i class="fas fa-user-edit"></i> 프로필 수정</button>
-                        <button class="dropdown-item text-danger" id="btn-delete-account"><i class="fas fa-user-times"></i> 회원 탈퇴</button>
                         <button class="dropdown-item text-danger" id="btn-logout"><i class="fas fa-sign-out-alt"></i> 로그아웃</button>
                     </div>
                 </div>
