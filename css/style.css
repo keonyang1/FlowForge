@@ -66,6 +66,8 @@ body { background-color: var(--bg-body); color: var(--text-primary); display: fl
 
 .btn-secondary { background-color: transparent; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.6rem 1.2rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
 .btn-secondary:hover { background-color: var(--bg-surface-hover); border-color: var(--border-hover); }
+.btn-secondary.text-danger { color: var(--danger-color); }
+.btn-secondary.text-danger:hover { background-color: rgba(239, 68, 68, 0.1); }
 
 .btn-success { background-color: rgba(16, 185, 129, 0.1); color: var(--success-color); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-md); padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
 .btn-success:hover { background-color: var(--success-color); color: white; transform: scale(1.05); }
