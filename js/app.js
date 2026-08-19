@@ -52,17 +52,28 @@ function resetAppUI() {
 
 async function loadAppData() {
     const user = AppAPI.getUser();
-    if(!user) return;
+    if (!user) return;
     UI.setGlobalLoading(true);
     try {
-        const [pRes, tRes] = await Promise.all([AppAPI.getProjects(user.user_id), AppAPI.getTasks(user.user_id)]);
-        if (pRes.success) currentProjects = pRes.projects;
-        if (tRes.success) currentTasks = tRes.tasks;
+        const [pRes, tRes] = await Promise.all([
+            AppAPI.getProjects(user.user_id),
+            AppAPI.getTasks(user.user_id)
+        ]);
+
+        if (!pRes.success) {
+            throw new Error(pRes.message || "프로젝트 데이터를 불러오지 못했습니다.");
+        }
+
+        if (!tRes.success) {
+            throw new Error(tRes.message || "작업 데이터를 불러오지 못했습니다.");
+        }
+        currentProjects = pRes.projects;
+        currentTasks = tRes.tasks;
 
         renderProjects();
         renderTasks();
         renderDashboard();
         renderAnalytics();
-    } catch (e) { UI.showToast(e.message, 'error'); } 
-    finally { UI.setGlobalLoading(false); }
+    } catch (e) {UI.showToast(e.message, "error"); }
+    finally {UI.setGlobalLoading(false); }
 }

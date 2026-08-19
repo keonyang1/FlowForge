@@ -90,10 +90,11 @@ const UI = {
         const submitBtn = document.getElementById('btn-submit-task');
         const select = document.getElementById('task-project');
         
+        form.reset();
+        
         select.innerHTML = '<option value="">선택 안함</option>';
         currentProjects.forEach(p => select.innerHTML += `<option value="${p.id}">${p.title}</option>`);
         
-        form.reset();
         form.dataset.mode = mode;
         if (taskId) {
             form.dataset.id = taskId;

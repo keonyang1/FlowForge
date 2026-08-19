@@ -12,6 +12,7 @@ function getFormatDate(dateStr) {
 function formatFriendlyDate(dateStr) {
     if (!dateStr) return '날짜 없음';
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '날짜 없음';
     return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
