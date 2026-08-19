@@ -139,10 +139,11 @@ const AppAPI = {
         });
     },
 
-    async updateProjectStatus(projectId, status) {
+    async updateProjectStatus(projectId, status, userId) {
         return await this.fetch({
             action: "update_project_status",
             project_id: projectId,
+            user_id: userId,
             status
         });
     },

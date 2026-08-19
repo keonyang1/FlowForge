@@ -73,7 +73,7 @@ async function updateProjectStatus(projId, status) {
     buttons.forEach(btn => btn.disabled = true);
     UI.setGlobalLoading(true);
     try {
-        const res = await AppAPI.updateProjectStatus(projId, status);
+        const res = await AppAPI.updateProjectStatus(projId, status, AppAPI.getUser().user_id);
         if (!res.success) {
             throw new Error(res.message);
         }
