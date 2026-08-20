@@ -1,3 +1,5 @@
+// js/ui.js
+
 function initTheme() {
     const savedTheme = localStorage.getItem('flowforge_theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);

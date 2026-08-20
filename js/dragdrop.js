@@ -1,3 +1,5 @@
+// js/dragdrop.js
+
 let isDragRequest = false;
 
 function initDragAndDrop() {

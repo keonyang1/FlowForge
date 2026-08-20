@@ -1,3 +1,5 @@
+// js/app.js
+
 let currentProjects = [];
 let currentTasks = [];
 

@@ -1,3 +1,5 @@
+// js/auth.js
+
 let currentHelpPage = 1;
 const TOTAL_HELP_PAGES = 7;
 

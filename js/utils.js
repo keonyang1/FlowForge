@@ -1,3 +1,5 @@
+// js/utils.js
+
 // 날짜 파싱 유틸리티 함수
 function getFormatDate(dateStr) {
     if (!dateStr) return '';

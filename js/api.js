@@ -1,3 +1,5 @@
+// js/api.js
+
 const AppAPI = {
     // 공통 요청
     async fetch(payload) {

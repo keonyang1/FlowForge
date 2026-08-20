@@ -1,3 +1,5 @@
+// js/project.js
+
 let isProjectRequest = false;
 
 window.openEditProjectModal = function(id) { UI.openProjectModal('edit', id); };

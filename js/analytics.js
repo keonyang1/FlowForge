@@ -1,3 +1,5 @@
+// js/analytics.js
+
 function renderDashboard() {
     const totalProjects = currentProjects.length;
     const activeProjects = currentProjects.filter(p => p.status === "진행 중").length;
