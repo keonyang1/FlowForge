@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAuth();
     initProject();
     initTask();
+    initMobileMenu();
 
     document.getElementById("global-search").addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase();
@@ -19,6 +20,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+function initMobileMenu() {
+    const mobileMenuBtn = document.getElementById("btn-mobile-menu");
+    const sidebar = document.querySelector(".sidebar");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+    if (!mobileMenuBtn || !sidebar || !sidebarOverlay) return;
+
+    mobileMenuBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("mobile-open");
+        sidebarOverlay.classList.toggle("show");
+    });
+
+    sidebarOverlay.addEventListener("click", () => {
+        sidebar.classList.remove("mobile-open");
+        sidebarOverlay.classList.remove("show");
+    });
+
+    document.querySelectorAll(".sidebar .nav-item").forEach(item => {
+        item.addEventListener("click", () => {
+            sidebar.classList.remove("mobile-open");
+            sidebarOverlay.classList.remove("show");
+        });
+    });
+}
 
 // 앱 초기화 유틸
 function resetAppUI() {

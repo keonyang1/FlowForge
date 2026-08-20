@@ -266,4 +266,12 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .modal-footer .btn-primary, .modal-footer .btn-secondary { flex: 1; }
     #toast-container { left: 1rem; right: 1rem; bottom: 1rem; }
     .toast { width: 100%; }
+    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 0; border-radius: var(--radius-md); }
+    .mobile-menu-btn:active { background-color: var(--bg-surface-hover); }
+    .mobile-brand { display: flex; margin: 0; padding: 0; font-size: 1.1rem; }
+    .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.25s ease, visibility 0.25s ease; }
+    .sidebar-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
 }
+.mobile-menu-btn { display: none; }
+.mobile-brand { display: none; }
+.sidebar-overlay { display: none; }
