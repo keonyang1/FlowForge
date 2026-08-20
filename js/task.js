@@ -80,7 +80,7 @@ function initTask() {
             description: document.getElementById("task-desc").value.trim(),
             priority: document.getElementById("task-priority").value,
             due_date: document.getElementById("task-date").value,
-            status: "To Do",
+            status: mode === "edit" ? (currentTasks.find(t => t.id === form.dataset.id)?.status || "To Do") : "To Do",
             user_id: AppAPI.getUser().user_id
         };
 
