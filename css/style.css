@@ -194,6 +194,7 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .task-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted); }
 .task-actions { position: absolute; top: 0.8rem; right: 0.8rem; display: flex; gap: 0.25rem; opacity: 0; transition: opacity 0.2s; }
 .task-card:hover .task-actions { opacity: 1; }
+.task-mobile-status { display: none; }
 @media (max-width: 768px) { .task-actions { opacity: 1; } }
 
 /* --- 대시보드 리스트 & 통계 --- */
@@ -282,9 +283,19 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .task-filter-select { min-width: 95px; font-size: 0.775rem; height: 32px; padding: 0.25rem 1.6rem 0.25rem 0.5rem; }
     .task-filter-actions { margin-left: 0; flex-shrink: 0; }
     .btn-filter-reset { height: 32px; font-size: 0.75rem; padding: 0.25rem 0.6rem; }
-    .kanban-board { height: calc(100dvh - 275px); gap: 1rem; padding-bottom: 0.75rem; }
-    .kanban-column { flex: 0 0 calc(100vw - 2.5rem); max-width: 340px; padding: 1rem; }
-    .task-card { padding: 1rem; }
+    .kanban-board { display: flex; flex-direction: column; height: auto; overflow-x: visible; overflow-y: visible; scroll-snap-type: none; gap: 1.5rem; padding-bottom: 2rem; }
+    .kanban-column { flex: none; width: 100%; max-width: none; scroll-snap-align: none; padding: 1.25rem 1rem; }
+    .kanban-tasks { overflow-y: visible; max-height: none; min-height: auto; gap: 0.75rem; padding-right: 0; }
+    .task-card { padding: 1.1rem; min-height: auto; cursor: default; -webkit-user-drag: none; user-select: auto; }
+    .task-card:active { cursor: default; transform: none; }
+    .task-card h4 { padding-right: 4.5rem; }
+    .task-actions { opacity: 1; gap: 0.4rem; }
+    .task-actions .btn-edit-item, .task-actions .btn-delete-item { width: 32px; height: 32px; padding: 0; background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.85rem; }
+    .task-mobile-status { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); }
+    .task-status-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; display: flex; align-items: center; gap: 0.3rem; cursor: default; }
+    .task-status-label i { color: var(--accent-color); font-size: 0.7rem; }
+    .task-status-select { flex: 1; font-size: 0.8rem; height: 34px; padding: 0.25rem 1.8rem 0.25rem 0.65rem; border-radius: var(--radius-md); background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; font-weight: 500; background-position: right 0.6rem center; }
+    .task-status-select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15); }
     .dashboard-list { padding: 1rem; }
     .dashboard-list-item { align-items: flex-start; gap: 0.75rem; }
     .modal-overlay { padding: 1rem; }

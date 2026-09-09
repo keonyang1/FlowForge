@@ -4,6 +4,42 @@ let isTaskRequest = false;
 
 window.openEditTaskModal = function(id) { UI.openTaskModal('edit', id); };
 
+let isStatusUpdating = false;
+
+async function changeTaskStatus(taskId, newStatus) {
+    if (isStatusUpdating) return;
+    const task = currentTasks.find(t => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+
+    isStatusUpdating = true;
+    const oldStatus = task.status;
+    task.status = newStatus;
+    renderTasks();
+    UI.setGlobalLoading(true);
+
+    try {
+        const res = await AppAPI.updateTaskStatus(
+            taskId,
+            newStatus,
+            AppAPI.getUser().user_id
+        );
+        if (!res.success) {
+            throw new Error(res.message);
+        }
+        UI.showToast(`상태가 변경되었습니다: ${newStatus}`);
+        await loadAppData();
+    } catch (err) {
+        task.status = oldStatus;
+        renderTasks();
+        UI.showToast(err.message || '상태 변경에 실패했습니다.', 'error');
+    } finally {
+        isStatusUpdating = false;
+        UI.setGlobalLoading(false);
+    }
+}
+
+window.changeTaskStatus = changeTaskStatus;
+
 function updateTaskProjectFilterOptions() {
     const select = document.getElementById('task-filter-project');
     if (!select) return;
@@ -193,9 +229,24 @@ function renderTasks() {
             <p class="task-desc search-text" title="${task.description || ''}">${task.description || '설명이 없습니다.'}</p>
             <div class="task-meta">
                 ${dateMetaHtml}
+            </div>
+            <div class="task-mobile-status" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">
+                <label class="task-status-label" for="task-status-select-${task.id}"><i class="fas fa-arrows-rotate"></i> 상태</label>
+                <select class="form-control task-status-select" id="task-status-select-${task.id}" onchange="changeTaskStatus('${task.id}', this.value)">
+                    <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
+                    <option value="In Progress"${task.status === 'In Progress' ? ' selected' : ''}>진행 중</option>
+                    <option value="Done"${task.status === 'Done' ? ' selected' : ''}>완료됨</option>
+                </select>
             </div>`;
 
-        card.addEventListener('dragstart', (e) => { card.classList.add('dragging'); e.dataTransfer.setData('text/plain', task.id); });
+        card.addEventListener('dragstart', (e) => {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                return false;
+            }
+            card.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', task.id);
+        });
         card.addEventListener('dragend', () => card.classList.remove('dragging'));
         col.appendChild(card);
     });
