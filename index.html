@@ -493,36 +493,109 @@
 
             <!-- 대시보드 -->
             <section id="dashboard-page" class="page-section active">
-                <div class="section-header">
+                <div class="section-header dashboard-header">
                     <div>
                         <h2 id="dashboard-greeting">환영합니다!</h2>
-                        <p>진행 중인 업무를 한눈에 파악하세요.</p>
+                        <p>진행 중인 업무와 마감 일정을 한눈에 파악하세요.</p>
+                    </div>
+                    <div class="dashboard-header-actions">
+                        <button class="btn-secondary" onclick="UI.openProjectModal('create')"><i class="fas fa-folder-plus"></i> 새 프로젝트</button>
+                        <button class="btn-primary" onclick="UI.openTaskModal('create')"><i class="fas fa-plus"></i> 새 작업 추가</button>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
-                    <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">총 프로젝트</p>
-                        <h3 id="stat-total" style="font-size: 2.25rem; font-weight: 600;">0</h3>
+                <!-- 1. 상단 요약 통계 그리드 -->
+                <div class="dashboard-stats-grid">
+                    <div class="dashboard-stat-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">프로젝트 현황</span>
+                            <span class="dashboard-stat-icon" style="color: var(--accent-color);"><i class="fas fa-folder"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="stat-total">0</h3>
+                        <div class="dashboard-stat-sub">
+                            <span>진행 중 <strong id="stat-active" style="color: var(--info-color);">0</strong></span>
+                            <span class="dot-sep">•</span>
+                            <span>완료 <strong id="stat-done" style="color: var(--success-color);">0</strong></span>
+                        </div>
                     </div>
-                    <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">진행 중</p>
-                        <h3 id="stat-active" style="font-size: 2.25rem; color: var(--info-color); font-weight: 600;">0</h3>
+
+                    <div class="dashboard-stat-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">작업 현황</span>
+                            <span class="dashboard-stat-icon" style="color: var(--warning-color);"><i class="fas fa-list-check"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="stat-tasks-total">0</h3>
+                        <div class="dashboard-stat-sub">
+                            <span>완료 <strong id="stat-tasks-done" style="color: var(--success-color);">0</strong></span>
+                            <span class="dot-sep">•</span>
+                            <span>대기/진행 <strong id="stat-tasks-pending" style="color: var(--warning-color);">0</strong></span>
+                        </div>
+                        <span id="stat-tasks" style="display: none;">0</span>
                     </div>
-                    <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">완료된 프로젝트</p>
-                        <h3 id="stat-done" style="font-size: 2.25rem; color: var(--success-color); font-weight: 600;">0</h3>
+
+                    <div class="dashboard-stat-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">평균 프로젝트 진행률</span>
+                            <span class="dashboard-stat-icon" style="color: var(--success-color);"><i class="fas fa-chart-line"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="stat-avg-progress">0%</h3>
+                        <div class="progress-container" style="height: 6px; margin-top: 0.5rem;">
+                            <div class="progress-bar" id="stat-avg-progress-bar" style="width: 0%;"></div>
+                        </div>
                     </div>
-                    <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">진행 대기 작업</p>
-                        <h3 id="stat-tasks" style="font-size: 2.25rem; color: var(--warning-color); font-weight: 600;">0</h3>
+
+                    <div class="dashboard-stat-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">주의 필요 작업</span>
+                            <span class="dashboard-stat-icon" style="color: var(--danger-color);"><i class="fas fa-bell"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="stat-alert-total" style="color: var(--danger-color);">0</h3>
+                        <div class="dashboard-stat-sub">
+                            <span>지연 <strong id="stat-overdue-count" style="color: var(--danger-color);">0</strong>건</span>
+                            <span class="dot-sep">•</span>
+                            <span>마감 임박 <strong id="stat-urgent-count" style="color: var(--warning-color);">0</strong>건</span>
+                        </div>
                     </div>
                 </div>
 
-                <h3 style="font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-fire" style="color: var(--danger-color);"></i> 마감 임박 작업
-                </h3>
-                <div class="dashboard-list" id="dashboard-recent-tasks"></div>
+                <!-- 2. 진행 중인 프로젝트 섹션 -->
+                <div class="dashboard-section">
+                    <div class="dashboard-section-title-row">
+                        <h3><i class="fas fa-folder-open" style="color: var(--info-color);"></i> 진행 중인 프로젝트</h3>
+                        <a href="javascript:void(0)" class="dashboard-view-all" onclick="UI.switchPage('projects')">전체보기 <i class="fas fa-chevron-right"></i></a>
+                    </div>
+                    <div id="dashboard-active-projects" class="dashboard-projects-grid"></div>
+                </div>
+
+                <!-- 3. 지연 작업 & 마감 임박 작업 2열 그리드 -->
+                <div id="dashboard-tasks-split" class="dashboard-tasks-split">
+                    <!-- 좌측: 지연된 작업 -->
+                    <div class="dashboard-split-col">
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-triangle-exclamation" style="color: var(--danger-color);"></i> 지연된 작업</h3>
+                            <span class="badge bg-danger" id="badge-overdue-count">0</span>
+                        </div>
+                        <div class="dashboard-list" id="dashboard-overdue-tasks"></div>
+                    </div>
+
+                    <!-- 우측: 마감 임박 작업 -->
+                    <div class="dashboard-split-col">
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-fire" style="color: var(--warning-color);"></i> 마감 임박 작업 (3일 이내)</h3>
+                            <span class="badge bg-warning" id="badge-urgent-count">0</span>
+                        </div>
+                        <div class="dashboard-list" id="dashboard-urgent-tasks"></div>
+                    </div>
+                </div>
+
+                <!-- 4. 최근 작업 섹션 -->
+                <div class="dashboard-section" style="margin-top: 2rem;">
+                    <div class="dashboard-section-title-row">
+                        <h3><i class="fas fa-clock-rotate-left" style="color: var(--accent-color);"></i> 최근 작업</h3>
+                        <a href="javascript:void(0)" class="dashboard-view-all" onclick="UI.switchPage('tasks')">작업 보드로 이동 <i class="fas fa-chevron-right"></i></a>
+                    </div>
+                    <div class="dashboard-list" id="dashboard-recent-tasks"></div>
+                </div>
             </section>
 
             <!-- 프로젝트 -->
@@ -623,17 +696,95 @@
             <!-- 통계 리포트 -->
             <section id="analytics-page" class="page-section">
                 <div class="section-header">
-                    <div><h2>통계 리포트</h2><p>내 프로젝트 및 작업의 현황을 시각적으로 확인하세요.</p></div>
+                    <div><h2>통계 리포트</h2><p>내 프로젝트 및 작업의 진행 상황과 분포를 한눈에 분석하세요.</p></div>
                 </div>
+
+                <!-- 1. 상단 KPI 요약 영역 -->
+                <div class="analytics-kpi-grid">
+                    <div class="analytics-kpi-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">전체 프로젝트</span>
+                            <span class="dashboard-stat-icon" style="color: var(--accent-color);"><i class="fas fa-folder"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="analytics-stat-projects">0</h3>
+                        <div class="dashboard-stat-sub"><span>등록된 프로젝트</span></div>
+                    </div>
+
+                    <div class="analytics-kpi-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">평균 프로젝트 진행률</span>
+                            <span class="dashboard-stat-icon" style="color: var(--info-color);"><i class="fas fa-chart-line"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="analytics-stat-avg-progress">0%</h3>
+                        <div class="dashboard-stat-sub"><span>전체 프로젝트 평균</span></div>
+                    </div>
+
+                    <div class="analytics-kpi-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">전체 작업</span>
+                            <span class="dashboard-stat-icon" style="color: var(--warning-color);"><i class="fas fa-list-check"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="analytics-stat-tasks">0</h3>
+                        <div class="dashboard-stat-sub"><span>등록된 세부 업무</span></div>
+                    </div>
+
+                    <div class="analytics-kpi-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">작업 완료율</span>
+                            <span class="dashboard-stat-icon" style="color: var(--success-color);"><i class="fas fa-circle-check"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="analytics-stat-completion-rate">0%</h3>
+                        <div class="dashboard-stat-sub"><span id="analytics-stat-completion-sub">0 / 0 완료</span></div>
+                    </div>
+
+                    <div class="analytics-kpi-card">
+                        <div class="dashboard-stat-header">
+                            <span class="dashboard-stat-label">지연 작업</span>
+                            <span class="dashboard-stat-icon" style="color: var(--danger-color);"><i class="fas fa-triangle-exclamation"></i></span>
+                        </div>
+                        <h3 class="dashboard-stat-val" id="analytics-stat-overdue" style="color: var(--danger-color);">0</h3>
+                        <div class="dashboard-stat-sub"><span>기한 초과 미완료</span></div>
+                    </div>
+                </div>
+
+                <!-- 2. 중단 2열 그리드: 프로젝트 진행 현황 & 작업 상태 분포 -->
                 <div class="analytics-grid">
                     <div class="analytics-card">
-                        <h3><i class="fas fa-folder-open" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 프로젝트 진행 현황</h3>
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-folder-open" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 프로젝트 진행 현황</h3>
+                        </div>
                         <div id="analytics-projects-content"></div>
                     </div>
                     <div class="analytics-card">
-                        <h3><i class="fas fa-tasks" style="color: var(--info-color); margin-right: 0.5rem;"></i> 작업(Task) 상태 분포</h3>
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-tasks" style="color: var(--info-color); margin-right: 0.5rem;"></i> 작업 상태 분포</h3>
+                        </div>
                         <div id="analytics-tasks-content"></div>
                     </div>
+                </div>
+
+                <!-- 3. 하단 2열 그리드: 작업 중요도 분석 & 마감 상태 분석 -->
+                <div class="analytics-grid" style="margin-top: 1.5rem;">
+                    <div class="analytics-card">
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-flag" style="color: var(--warning-color); margin-right: 0.5rem;"></i> 작업 중요도 분석</h3>
+                        </div>
+                        <div id="analytics-priority-content"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-calendar-check" style="color: var(--success-color); margin-right: 0.5rem;"></i> 마감 상태 분석</h3>
+                        </div>
+                        <div id="analytics-due-content"></div>
+                    </div>
+                </div>
+
+                <!-- 4. 하단 전체 너비: 프로젝트별 작업 완료율 -->
+                <div class="analytics-card" style="margin-top: 1.5rem;">
+                    <div class="dashboard-section-title-row">
+                        <h3><i class="fas fa-diagram-project" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 프로젝트별 작업 완료율</h3>
+                    </div>
+                    <div id="analytics-project-tasks-content"></div>
                 </div>
             </section>
             <footer style="text-align: center; padding: 2rem 1rem; border-top: 1px solid var(--border-color, #ddd); color: var(--text-secondary, #888); font-size: 0.9rem; margin-top: 2rem;">
