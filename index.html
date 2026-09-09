@@ -154,6 +154,24 @@
         </div>
     </div>
 
+    <!-- 4-1. 작업 상세 보기 모달 -->
+    <div id="task-detail-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'task-detail-modal')">
+        <div class="modal-content task-detail-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 id="task-detail-modal-title">작업 상세 정보</h3>
+                <button class="modal-close" onclick="UI.closeModal('task-detail-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="task-detail-body" class="task-detail-body">
+                <!-- 동적으로 렌더링 -->
+            </div>
+            <div class="modal-footer task-detail-footer" id="task-detail-footer">
+                <!-- 동적으로 렌더링 -->
+            </div>
+        </div>
+    </div>
+
     <!-- 5. 프로필 수정 모달 -->
     <div id="profile-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'profile-modal')">
         <div class="modal-content" style="max-width:420px;">

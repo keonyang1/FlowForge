@@ -74,6 +74,9 @@ function resetAppUI() {
     const projFilterSelect = document.getElementById('task-filter-project');
     if (projFilterSelect) projFilterSelect.innerHTML = '<option value="all">전체</option>';
     if (typeof currentProjectId !== 'undefined') currentProjectId = null;
+    if (typeof currentDetailTaskId !== 'undefined') currentDetailTaskId = null;
+    const detailModal = document.getElementById('task-detail-modal');
+    if (detailModal) detailModal.classList.remove('show');
     const detailContainer = document.getElementById('project-detail-container');
     if (detailContainer) detailContainer.innerHTML = '';
     
@@ -116,6 +119,15 @@ async function loadAppData() {
         renderAnalytics();
         if (typeof currentProjectId !== 'undefined' && currentProjectId) {
             renderProjectDetail(currentProjectId);
+        }
+        if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId) {
+            const updatedTask = currentTasks.find(t => t.id === currentDetailTaskId);
+            if (updatedTask && typeof renderTaskDetailContent === 'function') {
+                renderTaskDetailContent(updatedTask);
+            } else if (!updatedTask) {
+                currentDetailTaskId = null;
+                UI.closeModal('task-detail-modal');
+            }
         }
     } catch (e) {UI.showToast(e.message, "error"); }
     finally {UI.setGlobalLoading(false); }

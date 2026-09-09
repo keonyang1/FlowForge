@@ -286,6 +286,24 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .sidebar { position: absolute; transform: translateX(-100%); z-index: 1000; height: 100%; box-shadow: var(--shadow-lg); }
     .project-grid { grid-template-columns: 1fr; }
 }*/
+/* --- 작업 상세 모달 --- */
+.task-detail-content { max-width: 520px; width: 100%; }
+.task-detail-title { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); line-height: 1.4; margin-bottom: 1.2rem; word-break: keep-all; overflow-wrap: break-word; }
+.task-detail-title.is-done { text-decoration: line-through; color: var(--text-muted); }
+.task-detail-meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.25rem; background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; }
+.task-detail-meta-item { display: flex; flex-direction: column; gap: 0.35rem; }
+.task-detail-meta-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
+.task-detail-meta-label i { color: var(--accent-color); font-size: 0.75rem; }
+.task-detail-meta-val { font-size: 0.875rem; color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.task-detail-project-btn { background: none; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 4px); padding: 0.25rem 0.6rem; font-size: 0.8rem; color: var(--accent-color); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background-color: var(--bg-surface); }
+.task-detail-project-btn:hover { background-color: rgba(139, 92, 246, 0.1); border-color: var(--accent-color); }
+.task-detail-status-select { padding: 0.3rem 1.8rem 0.3rem 0.6rem; font-size: 0.8rem; height: 32px; border-radius: var(--radius-md); background-color: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); width: auto; min-width: 110px; cursor: pointer; background-position: right 0.6rem center; }
+.task-detail-desc-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem; }
+.task-detail-desc-label i { color: var(--accent-color); font-size: 0.75rem; }
+.task-detail-desc-box { background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; max-height: 200px; overflow-y: auto; line-height: 1.6; font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word; }
+.task-detail-footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+.task-detail-footer-right { display: flex; align-items: center; gap: 0.5rem; }
+
 .mobile-menu-btn { display: none; }
 .mobile-brand { display: none; }
 .sidebar-overlay { display: none; }
@@ -331,8 +349,8 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .kanban-board { display: flex; flex-direction: column; height: auto; overflow-x: visible; overflow-y: visible; scroll-snap-type: none; gap: 1.5rem; padding-bottom: 2rem; }
     .kanban-column { flex: none; width: 100%; max-width: none; scroll-snap-align: none; padding: 1.25rem 1rem; }
     .kanban-tasks { overflow-y: visible; max-height: none; min-height: auto; gap: 0.75rem; padding-right: 0; }
-    .task-card { padding: 1.1rem; min-height: auto; cursor: default; -webkit-user-drag: none; user-select: auto; }
-    .task-card:active { cursor: default; transform: none; }
+    .task-card { padding: 1.1rem; min-height: auto; cursor: pointer; -webkit-user-drag: none; user-select: auto; }
+    .task-card:active { cursor: pointer; transform: none; }
     .task-card h4 { padding-right: 4.5rem; }
     .task-actions { opacity: 1; gap: 0.4rem; }
     .task-actions .btn-edit-item, .task-actions .btn-delete-item { width: 32px; height: 32px; padding: 0; background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.85rem; }
@@ -341,6 +359,11 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .task-status-label i { color: var(--accent-color); font-size: 0.7rem; }
     .task-status-select { flex: 1; font-size: 0.8rem; height: 34px; padding: 0.25rem 1.8rem 0.25rem 0.65rem; border-radius: var(--radius-md); background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; font-weight: 500; background-position: right 0.6rem center; }
     .task-status-select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15); }
+    .task-detail-meta-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+    .task-detail-footer { flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
+    .task-detail-footer-right { width: 100%; display: flex; gap: 0.5rem; }
+    .task-detail-footer-right .btn-primary, .task-detail-footer-right .btn-secondary { flex: 1; }
+    .task-detail-footer .btn-secondary.text-danger { width: 100%; justify-content: center; }
     .dashboard-list { padding: 1rem; }
     .dashboard-list-item { align-items: flex-start; gap: 0.75rem; }
     .modal-overlay { padding: 1rem; }

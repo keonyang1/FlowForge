@@ -21,6 +21,32 @@ window.closeProjectDetail = function() {
     UI.switchPage('projects');
 };
 
+function getProjectProgress(projectOrId) {
+    const proj = typeof projectOrId === 'object' && projectOrId !== null
+        ? projectOrId
+        : currentProjects.find(p => p.id === projectOrId);
+    const projectId = proj ? proj.id : projectOrId;
+    const tasks = currentTasks.filter(t => t.project_id === projectId);
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'Done').length;
+
+    // 1. 프로젝트 자체가 '완료됨' 상태인 경우: 표시 진행률 100% (카운트는 실제 데이터 유지)
+    if (proj && proj.status === '완료됨') {
+        return { percent: 100, completed, total };
+    }
+
+    // 2. 등록된 작업이 없는 경우: 0%
+    if (total === 0) {
+        return { percent: 0, completed: 0, total: 0 };
+    }
+
+    // 3. 작업 기반 진행률 계산 (소수점 첫째 자리 반올림)
+    const percent = Math.round((completed / total) * 100);
+    return { percent, completed, total };
+}
+
+window.getProjectProgress = getProjectProgress;
+
 function renderProjects() {
     const container = document.getElementById('project-container');
     container.innerHTML = '';
@@ -31,10 +57,7 @@ function renderProjects() {
     }
 
     currentProjects.forEach(proj => {
-        const tasks = currentTasks.filter(t => t.project_id === proj.id);
-        const completed = tasks.filter(t => t.status === "Done").length;
-        const total = tasks.length;
-        const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+        const { percent: progress, completed, total } = getProjectProgress(proj.id);
 
         const diff = proj.due_date ? Math.ceil((new Date(proj.due_date) - new Date().setHours(0,0,0,0)) / 86400000) : null;
         const dday = diff === null ? { t: '기한 없음', c: 'bg-default' } : (diff > 0 ? { t: `D-${diff}`, c: 'bg-info' } : (diff === 0 ? { t: 'D-Day', c: 'bg-warning' } : { t: `D+${Math.abs(diff)} 지연`, c: 'bg-danger' }));
@@ -185,9 +208,7 @@ function renderProjectDetail(projId) {
     }
 
     const tasks = currentTasks.filter(t => t.project_id === proj.id);
-    const completedCount = tasks.filter(t => t.status === 'Done').length;
-    const totalCount = tasks.length;
-    const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+    const { percent: progress, completed: completedCount, total: totalCount } = getProjectProgress(proj.id);
 
     const diff = proj.due_date ? Math.ceil((new Date(proj.due_date) - new Date().setHours(0,0,0,0)) / 86400000) : null;
     const dday = diff === null ? { t: '기한 없음', c: 'bg-default' } : (diff > 0 ? { t: `D-${diff}`, c: 'bg-info' } : (diff === 0 ? { t: 'D-Day', c: 'bg-warning' } : { t: `D+${Math.abs(diff)} 지연`, c: 'bg-danger' }));
@@ -223,10 +244,6 @@ function renderProjectDetail(projId) {
             const prioColor = task.priority === 'High' ? 'danger-color' : (task.priority === 'Medium' ? 'warning-color' : 'info-color');
             const prioKor = task.priority === 'High' ? '높음' : (task.priority === 'Medium' ? '보통' : '낮음');
 
-            const editTaskBtnHtml = task.status !== 'Done'
-                ? `<button class="btn-edit-item" onclick="openEditTaskModal('${task.id}')" title="수정"><i class="fas fa-edit"></i></button>`
-                : `<button class="btn-edit-item" onclick="UI.showToast('완료된 작업은 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity:0.3; cursor:not-allowed;"><i class="fas fa-lock"></i></button>`;
-
             let overdueBadgeHtml = '';
             if (isOverdue) {
                 overdueBadgeHtml = `<span class="badge bg-danger" style="font-size: 0.7rem;"><i class="fas fa-exclamation-circle"></i> 기한 초과</span>`;
@@ -246,7 +263,7 @@ function renderProjectDetail(projId) {
             }
 
             tasksHtml += `
-                <div class="project-detail-task-card search-target${isOverdue ? ' is-overdue' : ''}">
+                <div class="project-detail-task-card search-target${isOverdue ? ' is-overdue' : ''}" onclick="openTaskDetail('${task.id}')" style="cursor: pointer;">
                     <div class="project-detail-task-main">
                         <div class="project-detail-task-info">
                             <div class="project-detail-task-badges">
@@ -257,8 +274,7 @@ function renderProjectDetail(projId) {
                             ${task.description ? `<p class="search-text project-detail-task-desc">${task.description}</p>` : ''}
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.25rem;">
-                            ${editTaskBtnHtml}
-                            <button class="btn-delete-item" onclick="deleteTask('${task.id}')" title="작업 삭제">
+                            <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="작업 삭제">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -267,7 +283,7 @@ function renderProjectDetail(projId) {
                         <div>
                             ${dateMetaHtml}
                         </div>
-                        <div class="project-detail-task-status-control">
+                        <div class="project-detail-task-status-control" onclick="event.stopPropagation()">
                             <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;"><i class="fas fa-arrows-rotate" style="color: var(--accent-color); font-size: 0.7rem;"></i> 상태:</span>
                             <select class="form-control" style="padding: 0.2rem 1.6rem 0.2rem 0.6rem; height: 30px; font-size: 0.775rem; width: auto; min-width: 95px; border-radius: var(--radius-md);" onchange="changeTaskStatus('${task.id}', this.value)">
                                 <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>

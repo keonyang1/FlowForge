@@ -1,8 +1,153 @@
 // js/task.js
 
 let isTaskRequest = false;
+let currentDetailTaskId = null;
 
 window.openEditTaskModal = function(id) { UI.openTaskModal('edit', id); };
+
+function openTaskDetail(taskId) {
+    const task = currentTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    currentDetailTaskId = taskId;
+    renderTaskDetailContent(task);
+    UI.openModal('task-detail-modal');
+}
+
+function closeTaskDetail() {
+    currentDetailTaskId = null;
+    UI.closeModal('task-detail-modal');
+}
+
+function renderTaskDetailContent(task) {
+    const body = document.getElementById('task-detail-body');
+    const footer = document.getElementById('task-detail-footer');
+    if (!body || !footer) return;
+
+    const proj = task.project_id ? currentProjects.find(p => p.id === task.project_id) : null;
+    const projName = proj ? proj.title : (task.project_id ? '삭제된 프로젝트' : '독립 작업');
+
+    const prioColor = task.priority === 'High' ? 'danger-color' : (task.priority === 'Medium' ? 'warning-color' : 'info-color');
+    const prioKor = task.priority === 'High' ? '높음' : (task.priority === 'Medium' ? '보통' : '낮음');
+
+    const diff = getDueDateDiff(task.due_date);
+    const isOverdue = task.status !== 'Done' && diff !== null && diff < 0;
+    const isDueSoon = task.status !== 'Done' && diff !== null && diff >= 0 && diff <= 3;
+
+    let dueBadgeHtml = '';
+    if (task.status === 'Done') {
+        dueBadgeHtml = `<span class="badge bg-success" style="font-size: 0.75rem;"><i class="far fa-calendar-check"></i> 완료</span>`;
+    } else if (isOverdue) {
+        dueBadgeHtml = `<span class="badge bg-danger" style="font-size: 0.75rem;"><i class="fas fa-exclamation-circle"></i> 기한 초과 (D+${Math.abs(diff)} 지연)</span>`;
+    } else if (isDueSoon) {
+        dueBadgeHtml = `<span class="badge bg-warning" style="font-size: 0.75rem;"><i class="far fa-clock"></i> ${diff === 0 ? '오늘 마감' : 'D-' + diff}</span>`;
+    } else if (diff !== null) {
+        dueBadgeHtml = `<span class="badge bg-info" style="font-size: 0.75rem;"><i class="far fa-clock"></i> D-${diff}</span>`;
+    } else {
+        dueBadgeHtml = `<span class="badge bg-default" style="font-size: 0.75rem;">기한 없음</span>`;
+    }
+
+    const dueDateText = task.due_date ? `${formatFriendlyDate(task.due_date)} (${getFormatDate(task.due_date)})` : '기한 없음';
+
+    let projHtml = '';
+    if (proj) {
+        projHtml = `<button type="button" class="task-detail-project-btn" onclick="navigateToProjectFromTaskDetail('${proj.id}')" title="프로젝트 상세 페이지로 이동">
+            <i class="fas fa-folder-open"></i>
+            <span>${proj.title}</span>
+            <i class="fas fa-arrow-right" style="font-size: 0.7rem; opacity: 0.7;"></i>
+        </button>`;
+    } else {
+        projHtml = `<span style="color: var(--text-muted); font-size: 0.85rem;">${projName}</span>`;
+    }
+
+    const createdMetaHtml = task.created_at ? `
+        <div class="task-detail-meta-item">
+            <span class="task-detail-meta-label"><i class="far fa-calendar-plus"></i> 등록일</span>
+            <div class="task-detail-meta-val"><span style="color: var(--text-muted); font-size: 0.8rem;">${task.created_at}</span></div>
+        </div>` : '';
+
+    body.innerHTML = `
+        <h3 class="task-detail-title${task.status === 'Done' ? ' is-done' : ''}">${task.title}</h3>
+
+        <div class="task-detail-meta-grid">
+            <div class="task-detail-meta-item">
+                <span class="task-detail-meta-label"><i class="fas fa-folder"></i> 소속 프로젝트</span>
+                <div class="task-detail-meta-val">${projHtml}</div>
+            </div>
+
+            <div class="task-detail-meta-item">
+                <span class="task-detail-meta-label"><i class="fas fa-arrows-rotate"></i> 상태</span>
+                <div class="task-detail-meta-val">
+                    <select class="form-control task-detail-status-select" onchange="changeTaskStatusFromDetail('${task.id}', this.value)">
+                        <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
+                        <option value="In Progress"${task.status === 'In Progress' ? ' selected' : ''}>진행 중</option>
+                        <option value="Done"${task.status === 'Done' ? ' selected' : ''}>완료됨</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="task-detail-meta-item">
+                <span class="task-detail-meta-label"><i class="fas fa-flag"></i> 중요도</span>
+                <div class="task-detail-meta-val">
+                    <span style="font-size: 0.8rem; color: var(--${prioColor}); border: 1px solid var(--${prioColor}); border-radius: 4px; padding: 0.15rem 0.55rem; font-weight: 600;">${prioKor}</span>
+                </div>
+            </div>
+
+            <div class="task-detail-meta-item">
+                <span class="task-detail-meta-label"><i class="far fa-calendar-check"></i> 마감일</span>
+                <div class="task-detail-meta-val">
+                    <span style="font-size: 0.85rem;">${dueDateText}</span>
+                    ${dueBadgeHtml}
+                </div>
+            </div>
+
+            ${createdMetaHtml}
+        </div>
+
+        <div class="task-detail-desc-label"><i class="fas fa-align-left"></i> 작업 설명</div>
+        <div class="task-detail-desc-box">${task.description ? task.description : '<span style="color: var(--text-muted); font-style: italic;">설명이 없습니다.</span>'}</div>
+    `;
+
+    const editBtnHtml = task.status !== 'Done'
+        ? `<button type="button" class="btn-secondary" onclick="editTaskFromDetail('${task.id}')"><i class="fas fa-edit"></i> 수정</button>`
+        : `<button type="button" class="btn-secondary" onclick="UI.showToast('완료된 작업은 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity: 0.4; cursor: not-allowed;"><i class="fas fa-lock"></i> 수정 불가</button>`;
+
+    footer.innerHTML = `
+        <button type="button" class="btn-secondary text-danger" onclick="deleteTaskFromDetail('${task.id}')"><i class="fas fa-trash"></i> 삭제</button>
+        <div class="task-detail-footer-right">
+            ${editBtnHtml}
+            <button type="button" class="btn-primary" onclick="closeTaskDetail()">닫기</button>
+        </div>
+    `;
+}
+
+function navigateToProjectFromTaskDetail(projectId) {
+    closeTaskDetail();
+    if (typeof openProjectDetail === 'function') {
+        openProjectDetail(projectId);
+    }
+}
+
+async function changeTaskStatusFromDetail(taskId, newStatus) {
+    await changeTaskStatus(taskId, newStatus);
+}
+
+function editTaskFromDetail(taskId) {
+    closeTaskDetail();
+    openEditTaskModal(taskId);
+}
+
+function deleteTaskFromDetail(taskId) {
+    deleteTask(taskId);
+}
+
+window.openTaskDetail = openTaskDetail;
+window.closeTaskDetail = closeTaskDetail;
+window.renderTaskDetailContent = renderTaskDetailContent;
+window.navigateToProjectFromTaskDetail = navigateToProjectFromTaskDetail;
+window.changeTaskStatusFromDetail = changeTaskStatusFromDetail;
+window.editTaskFromDetail = editTaskFromDetail;
+window.deleteTaskFromDetail = deleteTaskFromDetail;
 
 let isStatusUpdating = false;
 
@@ -15,6 +160,13 @@ async function changeTaskStatus(taskId, newStatus) {
     const oldStatus = task.status;
     task.status = newStatus;
     renderTasks();
+    if (typeof renderProjects === 'function') renderProjects();
+    if (typeof currentProjectId !== 'undefined' && currentProjectId && typeof renderProjectDetail === 'function') {
+        renderProjectDetail(currentProjectId);
+    }
+    if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
+        renderTaskDetailContent(task);
+    }
     UI.setGlobalLoading(true);
 
     try {
@@ -31,6 +183,13 @@ async function changeTaskStatus(taskId, newStatus) {
     } catch (err) {
         task.status = oldStatus;
         renderTasks();
+        if (typeof renderProjects === 'function') renderProjects();
+        if (typeof currentProjectId !== 'undefined' && currentProjectId && typeof renderProjectDetail === 'function') {
+            renderProjectDetail(currentProjectId);
+        }
+        if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
+            renderTaskDetailContent(task);
+        }
         UI.showToast(err.message || '상태 변경에 실패했습니다.', 'error');
     } finally {
         isStatusUpdating = false;
@@ -191,10 +350,6 @@ function renderTasks() {
         card.draggable = true;
         card.dataset.id = task.id;
         
-        const editBtnHtml = task.status !== 'Done'
-            ? `<button class="btn-edit-item" onclick="openEditTaskModal('${task.id}')" title="수정"><i class="fas fa-edit"></i></button>`
-            : `<button class="btn-edit-item" onclick="UI.showToast('완료된 작업은 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity:0.3; cursor:not-allowed;"><i class="fas fa-lock"></i></button>`;
-
         let overdueBadgeHtml = '';
         if (isOverdue) {
             overdueBadgeHtml = `<span class="badge bg-danger" style="font-size: 0.7rem;"><i class="fas fa-exclamation-circle"></i> 기한 초과</span>`;
@@ -215,8 +370,7 @@ function renderTasks() {
             
         card.innerHTML = `
             <div class="task-actions">
-                ${editBtnHtml}
-                <button class="btn-delete-item" onclick="deleteTask('${task.id}')" title="삭제">
+                <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="삭제">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -239,15 +393,26 @@ function renderTasks() {
                 </select>
             </div>`;
 
+        let isDraggingCard = false;
         card.addEventListener('dragstart', (e) => {
             if (window.innerWidth <= 768) {
                 e.preventDefault();
                 return false;
             }
+            isDraggingCard = true;
             card.classList.add('dragging');
             e.dataTransfer.setData('text/plain', task.id);
         });
-        card.addEventListener('dragend', () => card.classList.remove('dragging'));
+        card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+            setTimeout(() => {
+                isDraggingCard = false;
+            }, 150);
+        });
+        card.addEventListener('click', (e) => {
+            if (isDraggingCard) return;
+            openTaskDetail(task.id);
+        });
         col.appendChild(card);
     });
 
@@ -275,7 +440,16 @@ function deleteTask(taskId) {
     UI.confirm('작업 삭제', '이 작업을 삭제하시겠습니까?<br>삭제된 작업은 복구할 수 없습니다.', async () => {
         UI.setGlobalLoading(true);
         const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().user_id);
-        if(res.success) { UI.showToast('작업이 삭제되었습니다.'); loadAppData(); } else UI.showToast(res.message, 'error');
+        if(res.success) {
+            UI.showToast('작업이 삭제되었습니다.');
+            if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
+                currentDetailTaskId = null;
+                UI.closeModal('task-detail-modal');
+            }
+            loadAppData();
+        } else {
+            UI.showToast(res.message, 'error');
+        }
         UI.setGlobalLoading(false);
     });
 }
