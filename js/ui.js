@@ -21,7 +21,10 @@ const UI = {
         
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(nav => {
-            if(nav.getAttribute('onclick') && nav.getAttribute('onclick').includes(pageId)) nav.classList.add('active');
+            const oc = nav.getAttribute('onclick') || '';
+            if ((pageId === 'project-detail' && oc.includes('projects')) || oc.includes(pageId)) {
+                nav.classList.add('active');
+            }
         });
         
         const searchBox = document.getElementById('global-search');
@@ -86,7 +89,7 @@ const UI = {
         this.openModal('project-modal');
     },
             
-    openTaskModal(mode = 'create', taskId = null) {
+    openTaskModal(mode = 'create', taskId = null, defaultProjectId = null) {
         const form = document.getElementById('form-task');
         const title = document.getElementById('task-modal-title');
         const submitBtn = document.getElementById('btn-submit-task');
@@ -118,6 +121,11 @@ const UI = {
         } else {
             title.textContent = '새 작업 추가';
             submitBtn.textContent = '추가';
+            if (defaultProjectId) {
+                document.getElementById('task-project').value = defaultProjectId;
+            } else if (typeof currentProjectId !== 'undefined' && currentProjectId && sessionStorage.getItem("flowforge_current_page") === 'project-detail') {
+                document.getElementById('task-project').value = currentProjectId;
+            }
         }
         this.openModal('task-modal');
     },

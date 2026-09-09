@@ -73,6 +73,9 @@ function resetAppUI() {
     if (typeof resetTaskFilters === 'function') resetTaskFilters();
     const projFilterSelect = document.getElementById('task-filter-project');
     if (projFilterSelect) projFilterSelect.innerHTML = '<option value="all">전체</option>';
+    if (typeof currentProjectId !== 'undefined') currentProjectId = null;
+    const detailContainer = document.getElementById('project-detail-container');
+    if (detailContainer) detailContainer.innerHTML = '';
     
     sessionStorage.removeItem("flowforge_current_page");
     UI.switchPage('dashboard');
@@ -111,6 +114,9 @@ async function loadAppData() {
         renderTasks();
         renderDashboard();
         renderAnalytics();
+        if (typeof currentProjectId !== 'undefined' && currentProjectId) {
+            renderProjectDetail(currentProjectId);
+        }
     } catch (e) {UI.showToast(e.message, "error"); }
     finally {UI.setGlobalLoading(false); }
 }
