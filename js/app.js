@@ -13,11 +13,16 @@ document.addEventListener("DOMContentLoaded", () => {
     initMobileMenu();
 
     document.getElementById("global-search").addEventListener("input", (e) => {
-        const query = e.target.value.toLowerCase();
-        document.querySelectorAll(".search-target").forEach(card => {
-            const text = Array.from(card.querySelectorAll(".search-text")).map(el => el.textContent.toLowerCase()).join(" ");
-            card.style.display = text.includes(query) ? "" : "none";
-        });
+        const activeSection = document.querySelector(".page-section.active");
+        if (activeSection && activeSection.id === "tasks-page") {
+            renderTasks();
+        } else {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll(".search-target").forEach(card => {
+                const text = Array.from(card.querySelectorAll(".search-text")).map(el => el.textContent.toLowerCase()).join(" ");
+                card.style.display = text.includes(query) ? "" : "none";
+            });
+        }
     });
 });
 
@@ -64,6 +69,10 @@ function resetAppUI() {
             
     document.getElementById('header-nickname').textContent = '로딩중...';
     document.getElementById('header-avatar-initial').textContent = 'U';
+    
+    if (typeof resetTaskFilters === 'function') resetTaskFilters();
+    const projFilterSelect = document.getElementById('task-filter-project');
+    if (projFilterSelect) projFilterSelect.innerHTML = '<option value="all">전체</option>';
     
     sessionStorage.removeItem("flowforge_current_page");
     UI.switchPage('dashboard');

@@ -522,6 +522,56 @@
                     <div><h2>작업 보드</h2><p>마우스로 카드를 끌어다 놓아 상태를 변경하세요.</p></div>
                     <button class="btn-primary" onclick="UI.openTaskModal('create')"><i class="fas fa-plus"></i> 새 작업 추가</button>
                 </div>
+                <div class="task-filter-bar" id="task-filter-bar">
+                    <div class="task-filter-item">
+                        <label for="task-filter-status" class="task-filter-label"><i class="fas fa-list-check"></i> 상태</label>
+                        <select id="task-filter-status" class="form-control task-filter-select">
+                            <option value="all">전체</option>
+                            <option value="To Do">해야 할 일</option>
+                            <option value="In Progress">진행 중</option>
+                            <option value="Done">완료됨</option>
+                        </select>
+                    </div>
+                    <div class="task-filter-item">
+                        <label for="task-filter-priority" class="task-filter-label"><i class="fas fa-flag"></i> 중요도</label>
+                        <select id="task-filter-priority" class="form-control task-filter-select">
+                            <option value="all">전체</option>
+                            <option value="High">높음</option>
+                            <option value="Medium">보통</option>
+                            <option value="Low">낮음</option>
+                        </select>
+                    </div>
+                    <div class="task-filter-item">
+                        <label for="task-filter-project" class="task-filter-label"><i class="fas fa-folder"></i> 프로젝트</label>
+                        <select id="task-filter-project" class="form-control task-filter-select">
+                            <option value="all">전체</option>
+                        </select>
+                    </div>
+                    <div class="task-filter-item">
+                        <label for="task-filter-due" class="task-filter-label"><i class="fas fa-calendar-day"></i> 마감 상태</label>
+                        <select id="task-filter-due" class="form-control task-filter-select">
+                            <option value="all">전체</option>
+                            <option value="due_soon">마감 임박</option>
+                            <option value="overdue">기한 초과</option>
+                            <option value="completed">완료</option>
+                        </select>
+                    </div>
+                    <div class="task-filter-item">
+                        <label for="task-sort" class="task-filter-label"><i class="fas fa-arrow-down-wide-short"></i> 정렬</label>
+                        <select id="task-sort" class="form-control task-filter-select">
+                            <option value="default">기본순</option>
+                            <option value="due_date">마감일순</option>
+                            <option value="priority">중요도순</option>
+                            <option value="created_at">생성일순</option>
+                            <option value="title">이름순</option>
+                        </select>
+                    </div>
+                    <div class="task-filter-actions">
+                        <button type="button" class="btn-secondary btn-filter-reset" id="btn-task-filter-reset" title="필터 초기화">
+                            <i class="fas fa-rotate-left"></i> <span>초기화</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="kanban-board">
                     <div class="kanban-column" data-status="To Do">
                         <div class="kanban-header">
