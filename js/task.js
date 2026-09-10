@@ -138,6 +138,7 @@ function editTaskFromDetail(taskId) {
 }
 
 function deleteTaskFromDetail(taskId) {
+    closeTaskDetail();
     deleteTask(taskId);
 }
 
