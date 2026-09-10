@@ -82,3 +82,13 @@ function validateUserId(userId) {
 function validatePassword(password) {
     return AUTH.PASSWORD_REGEX.test(password);
 }
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}

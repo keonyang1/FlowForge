@@ -131,6 +131,16 @@ function deleteProject(projId) {
         try {
             const res = await AppAPI.deleteProject(projId, AppAPI.getUser().user_id);
             if (res.success) {
+                if (typeof currentChecklists !== 'undefined' && typeof currentTasks !== 'undefined') {
+                    const taskIdsToRemove = new Set(currentTasks.filter(t => t.project_id === projId).map(t => t.id));
+                    currentChecklists = currentChecklists.filter(c => !taskIdsToRemove.has(c.task_id));
+                    const user = AppAPI.getUser();
+                    if (user && user.user_id) {
+                        try {
+                            localStorage.setItem("flowforge_checklists_" + user.user_id, JSON.stringify(currentChecklists));
+                        } catch (e) {}
+                    }
+                }
                 UI.showToast('프로젝트가 삭제되었습니다.');
                 if (currentProjectId === projId) {
                     currentProjectId = null;
@@ -269,6 +279,14 @@ function renderProjectDetail(projId) {
                 dateMetaHtml = `<span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;"><i class="far fa-calendar-check"></i> ${formatFriendlyDate(task.due_date)}${dtext}</span>`;
             }
 
+            // 체크리스트 통계 및 뱃지
+            const chkStats = typeof getTaskChecklistStats === 'function' ? getTaskChecklistStats(task.id) : { total: 0, completed: 0, percent: 0 };
+            let checklistBadgeHtml = '';
+            if (chkStats.total > 0) {
+                const isAllDone = chkStats.completed === chkStats.total;
+                checklistBadgeHtml = `<span class="task-card-checklist-badge${isAllDone ? ' is-completed' : ''}" title="체크리스트 ${chkStats.completed}/${chkStats.total} 완료 (${chkStats.percent}%)"><i class="fas fa-list-check"></i> ${chkStats.completed}/${chkStats.total}</span>`;
+            }
+
             tasksHtml += `
                 <div class="project-detail-task-card search-target${isOverdue ? ' is-overdue' : ''}" onclick="openTaskDetail('${task.id}')" style="cursor: pointer;">
                     <div class="project-detail-task-main">
@@ -276,6 +294,7 @@ function renderProjectDetail(projId) {
                             <div class="project-detail-task-badges">
                                 <span style="font-size: 0.7rem; color: var(--${prioColor}); border: 1px solid var(--${prioColor}); border-radius: 4px; padding: 0.1rem 0.4rem; font-weight: 600;">${prioKor}</span>
                                 ${overdueBadgeHtml}
+                                ${checklistBadgeHtml}
                             </div>
                             <h4 class="search-text project-detail-task-title" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${task.title}</h4>
                             ${task.description ? `<p class="search-text project-detail-task-desc">${task.description}</p>` : ''}
