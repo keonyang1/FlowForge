@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAuth();
     initProject();
     initTask();
+    if (typeof initCalendar === 'function') initCalendar();
     initMobileMenu();
 
     document.getElementById("global-search").addEventListener("input", (e) => {
@@ -104,6 +105,7 @@ function resetAppUI() {
     if (detailModal) detailModal.classList.remove('show');
     const detailContainer = document.getElementById('project-detail-container');
     if (detailContainer) detailContainer.innerHTML = '';
+    if (typeof resetCalendarUI === 'function') resetCalendarUI();
     
     sessionStorage.removeItem("flowforge_current_page");
     UI.switchPage('dashboard');
@@ -142,6 +144,9 @@ async function loadAppData() {
         renderTasks();
         renderDashboard();
         renderAnalytics();
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
         if (typeof currentProjectId !== 'undefined' && currentProjectId) {
             renderProjectDetail(currentProjectId);
         }

@@ -170,6 +170,7 @@ async function changeTaskStatus(taskId, newStatus) {
     }
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof renderAnalytics === 'function') renderAnalytics();
+    if (typeof renderCalendar === 'function') renderCalendar();
     UI.setGlobalLoading(true);
 
     try {
@@ -195,6 +196,7 @@ async function changeTaskStatus(taskId, newStatus) {
         }
         if (typeof renderDashboard === 'function') renderDashboard();
         if (typeof renderAnalytics === 'function') renderAnalytics();
+        if (typeof renderCalendar === 'function') renderCalendar();
         UI.showToast(err.message || '상태 변경에 실패했습니다.', 'error');
     } finally {
         isStatusUpdating = false;

@@ -232,11 +232,13 @@ function renderProjectDetail(projId) {
     let tasksHtml = '';
     if (tasks.length === 0) {
         tasksHtml = `
-            <div class="empty-state" style="padding: 3.5rem 1.5rem;">
-                <i class="fas fa-tasks" style="font-size: 2.5rem; opacity: 0.4;"></i>
-                <h3>등록된 작업이 없습니다</h3>
-                <p>이 프로젝트에 새로운 작업을 추가하여 목표를 달성해보세요.</p>
-                <button class="btn-primary" style="margin-top: 0.75rem;" onclick="UI.openTaskModal('create', null, '${proj.id}')">
+            <div class="empty-state project-detail-empty-state" style="padding: 4rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); text-align: center;">
+                <i class="fas fa-clipboard-list" style="font-size: 3rem; color: var(--text-muted); opacity: 0.4; margin-bottom: 1.25rem;"></i>
+                <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">등록된 작업이 없습니다</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto;">
+                    이 프로젝트에서 진행할 첫 번째 작업을 추가하고<br>진행 상황을 체계적으로 관리해보세요.
+                </p>
+                <button class="btn-primary" onclick="UI.openTaskModal('create', null, '${proj.id}')" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 500;">
                     <i class="fas fa-plus"></i> 첫 번째 작업 추가
                 </button>
             </div>`;
@@ -302,6 +304,12 @@ function renderProjectDetail(projId) {
         tasksHtml += `</div>`;
     }
 
+    const addTaskBtnHtml = tasks.length > 0
+        ? `<button class="btn-primary" onclick="UI.openTaskModal('create', null, '${proj.id}')">
+                <i class="fas fa-plus"></i> 작업 추가
+            </button>`
+        : '';
+
     container.innerHTML = `
         <div class="project-detail-nav">
             <button class="btn-secondary btn-back" onclick="closeProjectDetail()">
@@ -346,9 +354,7 @@ function renderProjectDetail(projId) {
                     <i class="fas fa-tasks" style="color: var(--accent-color);"></i> 소속 작업 목록
                     <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal; margin-left: 0.5rem;">(${totalCount}개)</span>
                 </h3>
-                <button class="btn-primary" onclick="UI.openTaskModal('create', null, '${proj.id}')">
-                    <i class="fas fa-plus"></i> 작업 추가
-                </button>
+                ${addTaskBtnHtml}
             </div>
             ${tasksHtml}
         </div>
