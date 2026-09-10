@@ -412,5 +412,102 @@ const AppAPI = {
             console.warn("[Checklist API] Server sync error:", e);
             return { success: true, localOnly: true };
         }
+    },
+
+    // =========================
+    // Dependencies
+    // =========================
+    async getDependencies(userId) {
+        let list = [];
+        try {
+            const res = await this.fetch({
+                action: "get_dependencies",
+                user_id: userId
+            });
+            if (res && res.success && Array.isArray(res.dependencies)) {
+                list = res.dependencies;
+            }
+        } catch (e) {
+            console.warn("[Dependency API] Server get_dependencies failed, falling back to local cache:", e);
+        }
+
+        if (!list || list.length === 0) {
+            try {
+                const cached = localStorage.getItem(`flowforge_dependencies_${userId}`);
+                list = cached ? JSON.parse(cached) : [];
+            } catch (e) {}
+        }
+
+        const unique = [];
+        const seen = new Set();
+        const rawList = Array.isArray(list) ? list : [];
+        for (let i = rawList.length - 1; i >= 0; i--) {
+            const item = rawList[i];
+            const id = String(item.id || '').trim();
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            unique.push(item);
+        }
+        unique.reverse();
+
+        try {
+            localStorage.setItem(`flowforge_dependencies_${userId}`, JSON.stringify(unique));
+        } catch (e) {}
+
+        return {
+            success: true,
+            dependencies: unique
+        };
+    },
+
+    async addDependency(taskId, dependsOnTaskId, userId) {
+        try {
+            const res = await this.fetch({
+                action: "add_dependency",
+                user_id: userId,
+                task_id: taskId,
+                depends_on_task_id: dependsOnTaskId
+            });
+
+            if (res && res.success && res.dependency) {
+                try {
+                    const cacheKey = `flowforge_dependencies_${userId}`;
+                    const cached = localStorage.getItem(cacheKey);
+                    let all = cached ? JSON.parse(cached) : [];
+                    if (!Array.isArray(all)) all = [];
+                    if (!all.some(d => d.id === res.dependency.id)) {
+                        all.push(res.dependency);
+                        localStorage.setItem(cacheKey, JSON.stringify(all));
+                    }
+                } catch (e) {}
+            }
+            return res;
+        } catch (e) {
+            console.warn("[Dependency API] Server add error:", e);
+            return { success: false, message: e.message || '서버 통신 오류' };
+        }
+    },
+
+    async deleteDependency(dependencyId, userId) {
+        try {
+            const cacheKey = `flowforge_dependencies_${userId}`;
+            const cached = localStorage.getItem(cacheKey);
+            let all = cached ? JSON.parse(cached) : [];
+            if (Array.isArray(all)) {
+                all = all.filter(d => d.id !== dependencyId);
+                localStorage.setItem(cacheKey, JSON.stringify(all));
+            }
+        } catch (e) {}
+
+        try {
+            return await this.fetch({
+                action: "delete_dependency",
+                user_id: userId,
+                dependency_id: dependencyId
+            });
+        } catch (e) {
+            console.warn("[Dependency API] Server delete error:", e);
+            return { success: false, message: e.message || '서버 통신 오류' };
+        }
     }
 };

@@ -3,6 +3,7 @@
 let currentProjects = [];
 let currentTasks = [];
 let currentChecklists = [];
+let currentDependencies = [];
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -58,6 +59,7 @@ function resetAppUI() {
     currentProjects = [];
     currentTasks = [];
     currentChecklists = [];
+    currentDependencies = [];
     document.getElementById('stat-total').textContent = '0';
     document.getElementById('stat-active').textContent = '0';
     document.getElementById('stat-done').textContent = '0';
@@ -128,10 +130,11 @@ async function loadAppData() {
     if (!user) return;
     UI.setGlobalLoading(true);
     try {
-        const [pRes, tRes, cRes] = await Promise.all([
+        const [pRes, tRes, cRes, dRes] = await Promise.all([
             AppAPI.getProjects(user.user_id),
             AppAPI.getTasks(user.user_id),
-            AppAPI.getChecklists(user.user_id)
+            AppAPI.getChecklists(user.user_id),
+            AppAPI.getDependencies(user.user_id)
         ]);
 
         if (!pRes.success) {
@@ -154,6 +157,8 @@ async function loadAppData() {
             currentChecklists.push(item);
         }
         currentChecklists.reverse();
+
+        currentDependencies = (dRes && dRes.success && Array.isArray(dRes.dependencies)) ? dRes.dependencies : [];
 
         renderProjects();
         renderTasks();

@@ -147,7 +147,7 @@ const UI = {
         setTimeout(() => { toast.classList.add('fadeOut'); setTimeout(() => toast.remove(), 300); }, 3000);
     },
 
-    confirm(title, msg, onConfirm) {
+    confirm(title, msg, onConfirm, onCancel) {
         const modal = document.getElementById('confirm-modal');
         document.getElementById('confirm-title').textContent = title;
         document.getElementById('confirm-msg').innerHTML  = msg;
@@ -155,9 +155,28 @@ const UI = {
         const newBtnOk = btnOk.cloneNode(true), newBtnCancel = btnCancel.cloneNode(true);
         btnOk.parentNode.replaceChild(newBtnOk, btnOk); btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
         
+        let isHandled = false;
+        const handleCancel = () => {
+            if (isHandled) return;
+            isHandled = true;
+            modal.classList.remove('show');
+            if (typeof onCancel === 'function') onCancel();
+        };
+
+        const handleConfirm = () => {
+            if (isHandled) return;
+            isHandled = true;
+            modal.classList.remove('show');
+            if (typeof onConfirm === 'function') onConfirm();
+        };
+
+        modal.onclick = (e) => {
+            if (e.target === modal) handleCancel();
+        };
+
+        newBtnCancel.addEventListener('click', handleCancel);
+        newBtnOk.addEventListener('click', handleConfirm);
         modal.classList.add('show');
-        newBtnCancel.addEventListener('click', () => modal.classList.remove('show'));
-        newBtnOk.addEventListener('click', () => { modal.classList.remove('show'); onConfirm(); });
     },
     setGlobalLoading(isLoad) { 
         const loader = document.getElementById('global-loader');

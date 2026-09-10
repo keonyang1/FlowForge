@@ -172,6 +172,30 @@
         </div>
     </div>
 
+    <!-- 4-2. 선행 작업 추가 모달 -->
+    <div id="task-dependency-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'task-dependency-modal')">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 id="task-dependency-modal-title"><i class="fas fa-link" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 선행 작업 추가</h3>
+                <button class="modal-close" onclick="closeAddDependencyModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <p id="task-dependency-modal-subtitle" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">현재 작업이 진행되기 전 먼저 완료되어야 할 작업을 선택하세요.</p>
+                <div class="search-container" style="width: 100%;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="dep-search-input" placeholder="작업 이름 또는 프로젝트명 검색..." oninput="onDependencySearchInput(this.value)">
+                </div>
+            </div>
+            <div id="dep-candidate-list" class="task-dep-candidate-list">
+                <!-- 동적으로 렌더링 -->
+            </div>
+            <div class="modal-footer" style="margin-top: 1.25rem;">
+                <button type="button" class="btn-secondary" onclick="closeAddDependencyModal()">취소</button>
+                <button type="button" class="btn-primary" id="btn-submit-dependency" onclick="submitAddDependency()" disabled><i class="fas fa-plus"></i> 선행 작업으로 추가</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 4-1. 캘린더 날짜별 일정 상세 모달 -->
     <div id="calendar-day-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'calendar-day-modal')">
         <div class="modal-content" style="max-width: 520px;">

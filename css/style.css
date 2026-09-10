@@ -427,6 +427,58 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .task-card-checklist-badge i { font-size: 0.65rem; opacity: 0.85; }
 .task-card-checklist-badge.is-completed { color: var(--success-color); border-color: rgba(16, 185, 129, 0.4); background-color: rgba(16, 185, 129, 0.08); }
 
+/* --- 작업 의존성 (Task Dependency / 선행 작업) --- */
+.task-dependency-section { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.task-dep-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.task-dep-title-wrap { display: flex; align-items: center; gap: 0.4rem; }
+.task-dep-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
+.task-dep-title i { color: var(--accent-color); font-size: 0.75rem; }
+.task-dep-count-badge { font-size: 0.72rem; font-weight: 600; color: var(--accent-color); background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); padding: 0.1rem 0.5rem; border-radius: 9999px; }
+.task-dep-add-btn { height: 30px; padding: 0 0.75rem; font-size: 0.78rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0; white-space: nowrap; border-radius: var(--radius-md); }
+
+/* 미완료 선행 작업 경고 배너 */
+.task-dep-warning-banner { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-left: 3px solid var(--warning-color); border-radius: var(--radius-md); padding: 0.65rem 0.85rem; display: flex; align-items: flex-start; gap: 0.65rem; }
+.task-dep-warning-banner i { color: var(--warning-color); font-size: 0.95rem; margin-top: 0.15rem; flex-shrink: 0; }
+.task-dep-warning-body { flex: 1; min-width: 0; }
+.task-dep-warning-body strong { font-size: 0.8rem; color: var(--warning-color); display: block; margin-bottom: 0.2rem; }
+.task-dep-warning-body p { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0; }
+
+/* 선행 작업 목록 */
+.task-dep-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.task-dep-empty { font-size: 0.825rem; color: var(--text-muted); font-style: italic; padding: 0.75rem 0.5rem; text-align: center; background-color: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+.task-dep-item { display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; padding: 0.55rem 0.75rem; background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s; }
+.task-dep-item:hover { border-color: rgba(139, 92, 246, 0.4); }
+.task-dep-item.is-done { opacity: 0.75; }
+.task-dep-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.task-dep-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.task-dep-title-link { background: none; border: none; padding: 0; margin: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text-primary); font-size: 0.85rem; font-weight: 500; text-align: left; min-width: 0; max-width: calc(100% - 75px); }
+.task-dep-title-link:hover .task-dep-title-text { color: var(--accent-color); text-decoration: underline; }
+.task-dep-title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.task-dep-title-text.is-done { text-decoration: line-through; color: var(--text-muted); }
+.task-dep-item-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; color: var(--text-muted); }
+.btn-delete-dep { background: none; border: none; padding: 0.25rem 0.35rem; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
+.btn-delete-dep:hover { color: var(--danger-color); background-color: rgba(239, 68, 68, 0.1); }
+
+/* 칸반 카드 선행 작업 뱃지 */
+.task-card-dep-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.68rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-secondary); transition: all 0.2s; flex-shrink: 0; }
+.task-card-dep-badge i { font-size: 0.62rem; opacity: 0.85; }
+.task-card-dep-badge.is-satisfied { color: var(--success-color); border-color: rgba(16, 185, 129, 0.4); background-color: rgba(16, 185, 129, 0.08); }
+.task-card-dep-badge.is-pending { color: var(--warning-color); border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.08); }
+
+/* 선행 작업 추가 모달 후보 목록 */
+.task-dep-candidate-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.45rem; padding-right: 0.25rem; margin: 0.5rem 0; }
+.task-dep-candidate-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.85rem; background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; user-select: none; }
+.task-dep-candidate-item:hover:not(.is-disabled) { border-color: var(--accent-color); background-color: var(--bg-surface-hover); }
+.task-dep-candidate-item.is-selected { border-color: var(--accent-color); background-color: rgba(139, 92, 246, 0.08); box-shadow: 0 0 0 1px var(--accent-color); }
+.task-dep-candidate-item.is-disabled { opacity: 0.5; cursor: not-allowed; }
+.task-dep-candidate-radio { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.task-dep-candidate-radio input[type="radio"] { accent-color: var(--accent-color); cursor: pointer; width: 16px; height: 16px; margin: 0; }
+.task-dep-candidate-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.task-dep-candidate-title-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.task-dep-candidate-title { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.task-dep-candidate-meta-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted); }
+.task-dep-candidate-empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; background-color: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+
 /* --- 캘린더 (Calendar) --- */
 .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
 .calendar-controls { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
@@ -620,6 +672,12 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .task-detail-footer .btn-secondary.text-danger { width: 100%; justify-content: center; }
     .task-checklist-item-actions { opacity: 1; }
     .task-checklist-add-btn { padding: 0 0.65rem; }
+    .task-dep-header { flex-wrap: wrap; gap: 0.5rem; }
+    .task-dep-add-btn { height: 32px; font-size: 0.75rem; padding: 0 0.65rem; }
+    .task-dep-item { padding: 0.5rem 0.65rem; }
+    .task-dep-title-link { max-width: calc(100% - 65px); font-size: 0.825rem; }
+    .task-dep-candidate-list { max-height: 240px; }
+    .task-dep-candidate-item { padding: 0.55rem 0.65rem; }
     .task-detail-content { max-height: calc(100dvh - 2rem); padding: 1.25rem 1.25rem 1rem 1.25rem; overflow: hidden; display: flex; flex-direction: column; }
     .task-detail-body { padding-right: 0.25rem; margin-right: 0; }
     .dashboard-header { flex-direction: column; align-items: stretch; gap: 1rem; }
