@@ -710,6 +710,12 @@
                         <div class="kanban-tasks" id="col-done"></div>
                     </div>
                 </div>
+                <!-- 모바일 칸반 페이지 인디케이터 (모바일 화면에서만 표시) -->
+                <div class="kanban-mobile-indicator" id="kanban-mobile-indicator">
+                    <button type="button" class="kanban-indicator-dot active" data-page="0" onclick="setMobileKanbanPage(0)" aria-label="해야 할 일" title="해야 할 일 (1/3)"></button>
+                    <button type="button" class="kanban-indicator-dot" data-page="1" onclick="setMobileKanbanPage(1)" aria-label="진행 중" title="진행 중 (2/3)"></button>
+                    <button type="button" class="kanban-indicator-dot" data-page="2" onclick="setMobileKanbanPage(2)" aria-label="완료됨" title="완료됨 (3/3)"></button>
+                </div>
             </section>
 
             <!-- 캘린더 -->

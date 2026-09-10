@@ -108,6 +108,7 @@ function resetAppUI() {
     const detailContainer = document.getElementById('project-detail-container');
     if (detailContainer) detailContainer.innerHTML = '';
     if (typeof resetCalendarUI === 'function') resetCalendarUI();
+    if (typeof setMobileKanbanPage === 'function') setMobileKanbanPage(0);
     
     sessionStorage.removeItem("flowforge_current_page");
     UI.switchPage('dashboard');

@@ -708,7 +708,7 @@ function renderTasks() {
             }, 150);
         });
         card.addEventListener('click', (e) => {
-            if (isDraggingCard) return;
+            if (isDraggingCard || isMobileSwiping) return;
             openTaskDetail(task.id);
         });
         col.appendChild(card);
@@ -732,6 +732,8 @@ function renderTasks() {
     if (countTodo) countTodo.textContent = counts['To Do'];
     if (countInprogress) countInprogress.textContent = counts['In Progress'];
     if (countDone) countDone.textContent = counts['Done'];
+
+    updateMobileKanbanUI();
 }
 
 function deleteTask(taskId) {
@@ -843,4 +845,146 @@ function initTask() {
             UI.setGlobalLoading(false);
         }
     };
+
+    initMobileKanbanSwipe();
 }
+
+// --- 모바일 페이지형 칸반 및 스와이프 제스처 로직 ---
+let currentMobileKanbanPage = 0; // 0: To Do, 1: In Progress, 2: Done
+let isMobileSwiping = false;
+
+function setMobileKanbanPage(pageIndex) {
+    if (typeof pageIndex !== 'number') pageIndex = parseInt(pageIndex, 10) || 0;
+    if (pageIndex < 0) pageIndex = 0;
+    if (pageIndex > 2) pageIndex = 2;
+    currentMobileKanbanPage = pageIndex;
+
+    const board = document.querySelector('.kanban-board');
+    if (board) {
+        board.style.setProperty('--mobile-kanban-page', pageIndex);
+    }
+
+    const cols = document.querySelectorAll('.kanban-column');
+    cols.forEach((col, idx) => {
+        col.classList.toggle('is-active', idx === pageIndex);
+    });
+
+    const dots = document.querySelectorAll('.kanban-indicator-dot');
+    dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === pageIndex);
+    });
+}
+
+function updateMobileKanbanUI() {
+    setMobileKanbanPage(currentMobileKanbanPage);
+}
+
+function initMobileKanbanSwipe() {
+    const kanbanBoard = document.querySelector('.kanban-board');
+    if (!kanbanBoard) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isSwiping = false;
+    let isScrolling = false;
+
+    kanbanBoard.addEventListener('touchstart', (e) => {
+        if (window.innerWidth > 768) return;
+        if (e.touches.length !== 1) return;
+
+        // 버튼, 셀렉트, 링크 등 대화형 요소 터치는 무시
+        const target = e.target;
+        if (target.closest('button, select, input, textarea, a, .task-status-select, .btn-delete-item, .task-mobile-status')) {
+            return;
+        }
+
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = Date.now();
+        isSwiping = false;
+        isScrolling = false;
+        isMobileSwiping = false;
+    }, { passive: true });
+
+    kanbanBoard.addEventListener('touchmove', (e) => {
+        if (window.innerWidth > 768) return;
+        if (e.touches.length !== 1) return;
+        if (isScrolling) return;
+
+        const touch = e.touches[0];
+        const dx = touch.clientX - touchStartX;
+        const dy = touch.clientY - touchStartY;
+
+        if (!isSwiping && !isScrolling) {
+            // 수직 스크롤 판정 (|dy| >= |dx| && |dy| > 8px)
+            if (Math.abs(dy) > 8 && Math.abs(dy) >= Math.abs(dx)) {
+                isScrolling = true;
+                return;
+            }
+            // 가로 스와이프 판정 (|dx| > |dy| && |dx| > 8px)
+            if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+                isSwiping = true;
+                isMobileSwiping = true;
+            }
+        }
+
+        if (isSwiping) {
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
+
+    kanbanBoard.addEventListener('touchend', (e) => {
+        if (window.innerWidth > 768) return;
+        if (!isSwiping) {
+            isScrolling = false;
+            return;
+        }
+
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - touchStartX;
+        const dy = touch.clientY - touchStartY;
+        const dt = Date.now() - touchStartTime;
+
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        // 스와이프 판정 기준: 이동 거리 >= 40px 또는 빠른 플릭(>= 25px & < 250ms)
+        const isThresholdPassed = absDx >= 40 || (absDx >= 25 && dt < 250);
+
+        if (isThresholdPassed && absDx > absDy) {
+            if (dx < 0) {
+                // 오른쪽 -> 왼쪽 Swipe: 다음 상태 (0 -> 1 -> 2)
+                if (currentMobileKanbanPage < 2) {
+                    setMobileKanbanPage(currentMobileKanbanPage + 1);
+                }
+            } else {
+                // 왼쪽 -> 오른쪽 Swipe: 이전 상태 (2 -> 1 -> 0)
+                if (currentMobileKanbanPage > 0) {
+                    setMobileKanbanPage(currentMobileKanbanPage - 1);
+                }
+            }
+        }
+
+        isSwiping = false;
+        isScrolling = false;
+        // 스와이프 완료 직후 발생할 수 있는 가상 클릭 이벤트 억제
+        setTimeout(() => {
+            isMobileSwiping = false;
+        }, 120);
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 768) {
+            updateMobileKanbanUI();
+        }
+    });
+
+    updateMobileKanbanUI();
+}
+
+window.setMobileKanbanPage = setMobileKanbanPage;
+window.updateMobileKanbanUI = updateMobileKanbanUI;
