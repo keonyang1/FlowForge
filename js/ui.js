@@ -38,9 +38,13 @@ const UI = {
     
     closeModal(id) { 
         const modal = document.getElementById(id);
+        if(!modal) return;
         modal.classList.remove('show'); 
         const form = modal.querySelector('form');
         if(form) form.reset(); 
+        if(id === 'help-modal' && typeof stopHelpAnimation === 'function') {
+            stopHelpAnimation();
+        }
     },
     handleOutsideClick(event, id) {
         if(event.target.id === id) this.closeModal(id);
