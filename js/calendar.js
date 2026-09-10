@@ -97,9 +97,9 @@ function setCalendarView(viewType) {
     const weekWrap = document.getElementById('calendar-week-view-wrap');
     const dayWrap = document.getElementById('calendar-day-view-wrap');
 
-    if (monthWrap) monthWrap.style.display = viewType === 'month' ? 'block' : 'none';
-    if (weekWrap) weekWrap.style.display = viewType === 'week' ? 'block' : 'none';
-    if (dayWrap) dayWrap.style.display = viewType === 'day' ? 'block' : 'none';
+    if (monthWrap) monthWrap.style.display = viewType === 'month' ? 'flex' : 'none';
+    if (weekWrap) weekWrap.style.display = viewType === 'week' ? 'flex' : 'none';
+    if (dayWrap) dayWrap.style.display = viewType === 'day' ? 'flex' : 'none';
 
     renderCalendar();
 }
@@ -188,7 +188,7 @@ function resetCalendarUI() {
     const monthWrap = document.getElementById('calendar-month-view-wrap');
     const weekWrap = document.getElementById('calendar-week-view-wrap');
     const dayWrap = document.getElementById('calendar-day-view-wrap');
-    if (monthWrap) monthWrap.style.display = 'block';
+    if (monthWrap) monthWrap.style.display = 'flex';
     if (weekWrap) weekWrap.style.display = 'none';
     if (dayWrap) dayWrap.style.display = 'none';
 
@@ -287,9 +287,10 @@ function renderMonthView() {
         cellsHtml += createCalendarCellHtml(dateStr, dayNum, false, dateStr === todayStr, dayOfWeek, projectsMap[dateStr] || [], tasksMap[dateStr] || []);
     }
 
-    // 다음 달 날짜 채우기 (총 7의 배수 맞춤)
+    // 다음 달 날짜 채우기: 항상 최대 6주(42칸)를 수용하는 안정적인 고정 그리드 구조
     const totalFilled = firstDayOfWeek + daysInMonth;
-    const nextCellsNeeded = totalFilled % 7 === 0 ? 0 : 7 - (totalFilled % 7);
+    const totalCells = 42; // 6주 × 7일
+    const nextCellsNeeded = totalCells - totalFilled;
     const nextYear = currentCalendarMonth === 11 ? currentCalendarYear + 1 : currentCalendarYear;
     const nextMonth = currentCalendarMonth === 11 ? 0 : currentCalendarMonth + 1;
     for (let dayNum = 1; dayNum <= nextCellsNeeded; dayNum++) {
@@ -313,7 +314,8 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
     if (totalItems > 0) dayClasses.push('has-events');
 
     let itemsHtml = '';
-    const maxVisible = 3;
+    // 셀 높이(104px)가 일정 개수에 의해 늘어나지 않도록 최대 2개 표시 후 초과분은 +N개 더보기 버튼 표시
+    const maxVisible = totalItems > 2 ? 2 : 2;
     let renderedCount = 0;
 
     // 프로젝트 항목 렌더링
