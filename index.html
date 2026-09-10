@@ -747,39 +747,39 @@
                     </div>
                 </div>
 
-                <!-- 2. 중단 2열 그리드: 프로젝트 진행 현황 & 작업 상태 분포 -->
+                <!-- 2. 중단 2열 그리드: 작업 상태 분포 & 작업 중요도 분포 -->
                 <div class="analytics-grid">
                     <div class="analytics-card">
                         <div class="dashboard-section-title-row">
-                            <h3><i class="fas fa-folder-open" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 프로젝트 진행 현황</h3>
-                        </div>
-                        <div id="analytics-projects-content"></div>
-                    </div>
-                    <div class="analytics-card">
-                        <div class="dashboard-section-title-row">
-                            <h3><i class="fas fa-tasks" style="color: var(--info-color); margin-right: 0.5rem;"></i> 작업 상태 분포</h3>
+                            <h3><i class="fas fa-chart-pie" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 작업 상태 분포</h3>
                         </div>
                         <div id="analytics-tasks-content"></div>
                     </div>
-                </div>
-
-                <!-- 3. 하단 2열 그리드: 작업 중요도 분석 & 마감 상태 분석 -->
-                <div class="analytics-grid" style="margin-top: 1.5rem;">
                     <div class="analytics-card">
                         <div class="dashboard-section-title-row">
-                            <h3><i class="fas fa-flag" style="color: var(--warning-color); margin-right: 0.5rem;"></i> 작업 중요도 분석</h3>
+                            <h3><i class="fas fa-flag" style="color: var(--warning-color); margin-right: 0.5rem;"></i> 작업 중요도 분포</h3>
                         </div>
                         <div id="analytics-priority-content"></div>
                     </div>
+                </div>
+
+                <!-- 3. 하단 2열 그리드: 마감 상태 분석 & 전체 작업 종합 요약 -->
+                <div class="analytics-grid" style="margin-top: 1.5rem;">
                     <div class="analytics-card">
                         <div class="dashboard-section-title-row">
                             <h3><i class="fas fa-calendar-check" style="color: var(--success-color); margin-right: 0.5rem;"></i> 마감 상태 분석</h3>
                         </div>
                         <div id="analytics-due-content"></div>
                     </div>
+                    <div class="analytics-card">
+                        <div class="dashboard-section-title-row">
+                            <h3><i class="fas fa-chart-simple" style="color: var(--info-color); margin-right: 0.5rem;"></i> 전체 작업 종합 요약</h3>
+                        </div>
+                        <div id="analytics-summary-content"></div>
+                    </div>
                 </div>
 
-                <!-- 4. 하단 전체 너비: 프로젝트별 작업 완료율 -->
+                <!-- 4. 최하단 전체 너비: 프로젝트별 작업 완료율 -->
                 <div class="analytics-card" style="margin-top: 1.5rem;">
                     <div class="dashboard-section-title-row">
                         <h3><i class="fas fa-diagram-project" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 프로젝트별 작업 완료율</h3>

@@ -80,8 +80,7 @@ function resetAppUI() {
     document.getElementById('col-todo').innerHTML = '';
     document.getElementById('col-inprogress').innerHTML = '';
     document.getElementById('col-done').innerHTML = '';
-    document.getElementById('analytics-projects-content').innerHTML = '';
-    document.getElementById('analytics-tasks-content').innerHTML = '';
+    setElemHtml('analytics-tasks-content', '');
     setElemText('analytics-stat-projects', '0');
     setElemText('analytics-stat-avg-progress', '0%');
     setElemText('analytics-stat-tasks', '0');
@@ -90,6 +89,7 @@ function resetAppUI() {
     setElemText('analytics-stat-overdue', '0');
     setElemHtml('analytics-priority-content', '');
     setElemHtml('analytics-due-content', '');
+    setElemHtml('analytics-summary-content', '');
     setElemHtml('analytics-project-tasks-content', '');
             
     document.getElementById('header-nickname').textContent = '로딩중...';

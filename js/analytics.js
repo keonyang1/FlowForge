@@ -298,48 +298,7 @@ function renderAnalytics() {
     const elKpiOverdue = document.getElementById('analytics-stat-overdue');
     if (elKpiOverdue) elKpiOverdue.textContent = overdueCount;
 
-    // 5. [중단 좌측] 프로젝트 진행 현황
-    const pContent = document.getElementById('analytics-projects-content');
-    if (pContent) {
-        if (totalProjects === 0) {
-            pContent.innerHTML = `
-                <div class="analytics-empty">
-                    <i class="fas fa-folder-open"></i>
-                    <p>등록된 프로젝트가 없습니다.<br><span style="font-size: 0.8rem; opacity: 0.7;">새 프로젝트를 생성하여 체계적으로 업무를 관리해보세요.</span></p>
-                </div>`;
-        } else {
-            pContent.innerHTML = '';
-            currentProjects.forEach(proj => {
-                const { percent, completed, total } = typeof getProjectProgress === 'function'
-                    ? getProjectProgress(proj.id)
-                    : { percent: 0, completed: 0, total: 0 };
-                const statusBadge = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-info' : 'bg-default');
-
-                pContent.innerHTML += `
-                    <div class="analytics-project-item" onclick="openProjectDetail('${proj.id}')" title="프로젝트 상세 보기로 이동">
-                        <div class="analytics-project-header">
-                            <span class="analytics-project-title">
-                                <i class="fas fa-folder" style="color: var(--accent-color); font-size: 0.85rem;"></i>
-                                ${proj.title}
-                            </span>
-                            <div class="analytics-project-meta">
-                                <span class="badge ${statusBadge}" style="font-size: 0.7rem;">${proj.status}</span>
-                                <span><i class="far fa-calendar"></i> ${formatFriendlyDate(proj.due_date)}</span>
-                            </div>
-                        </div>
-                        <div class="progress-container" style="height: 6px;">
-                            <div class="progress-bar" style="width: ${percent}%;"></div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.775rem; color: var(--text-muted); margin-top: 0.4rem;">
-                            <span>${completed} / ${total} 작업 완료</span>
-                            <span style="font-weight: 600; color: var(--accent-color);">${percent}%</span>
-                        </div>
-                    </div>`;
-            });
-        }
-    }
-
-    // 6. [중단 우측] 작업 상태 분포
+    // 5. [중단 좌측] 작업 상태 분포 (도넛 차트 + 범례)
     const tContent = document.getElementById('analytics-tasks-content');
     if (tContent) {
         if (totalTasks === 0) {
@@ -352,34 +311,51 @@ function renderAnalytics() {
             const tCounts = { 'To Do': 0, 'In Progress': 0, 'Done': 0 };
             currentTasks.forEach(t => { if (tCounts[t.status] !== undefined) tCounts[t.status]++; });
 
-            tContent.innerHTML = '';
-            const statusConfig = [
-                { label: '해야 할 일 (To Do)', key: 'To Do', color: 'var(--info-color)', icon: 'fas fa-list-ul' },
-                { label: '진행 중 (In Progress)', key: 'In Progress', color: 'var(--warning-color)', icon: 'fas fa-spinner' },
-                { label: '완료됨 (Done)', key: 'Done', color: 'var(--success-color)', icon: 'fas fa-circle-check' }
-            ];
+            const todoPct = Math.round((tCounts['To Do'] / totalTasks) * 100);
+            const inProgPct = Math.round((tCounts['In Progress'] / totalTasks) * 100);
+            const donePct = Math.max(0, 100 - todoPct - inProgPct);
 
-            statusConfig.forEach(item => {
-                const count = tCounts[item.key] || 0;
-                const pct = Math.round((count / totalTasks) * 100);
-                tContent.innerHTML += `
-                    <div class="analytics-stat-row">
-                        <div class="analytics-stat-header">
-                            <span class="analytics-stat-label">
-                                <i class="${item.icon}" style="color: ${item.color}; font-size: 0.8rem;"></i>
-                                ${item.label}
+            // 도넛 차트 각도 계산 (conic-gradient)
+            const p1 = (tCounts['To Do'] / totalTasks) * 100;
+            const p2 = p1 + (tCounts['In Progress'] / totalTasks) * 100;
+            const gradient = `conic-gradient(var(--info-color) 0% ${p1}%, var(--warning-color) ${p1}% ${p2}%, var(--success-color) ${p2}% 100%)`;
+
+            tContent.innerHTML = `
+                <div class="analytics-donut-wrapper">
+                    <div class="analytics-donut-chart" style="background: ${gradient};">
+                        <div class="analytics-donut-hole">
+                            <span class="analytics-donut-total">${totalTasks}</span>
+                            <span class="analytics-donut-label">전체 작업</span>
+                        </div>
+                    </div>
+                    <div class="analytics-donut-legend">
+                        <div class="analytics-donut-item">
+                            <span class="analytics-donut-item-left">
+                                <span class="analytics-donut-dot" style="background-color: var(--info-color);"></span>
+                                <span>해야 할 일 (To Do)</span>
                             </span>
-                            <span class="analytics-stat-badge">${count}개 · ${pct}%</span>
+                            <span class="analytics-donut-item-val">${tCounts['To Do']}개 · ${todoPct}%</span>
                         </div>
-                        <div class="progress-container" style="height: 8px;">
-                            <div class="progress-bar" style="width: ${pct}%; background-color: ${item.color};"></div>
+                        <div class="analytics-donut-item">
+                            <span class="analytics-donut-item-left">
+                                <span class="analytics-donut-dot" style="background-color: var(--warning-color);"></span>
+                                <span>진행 중 (In Progress)</span>
+                            </span>
+                            <span class="analytics-donut-item-val">${tCounts['In Progress']}개 · ${inProgPct}%</span>
                         </div>
-                    </div>`;
-            });
+                        <div class="analytics-donut-item">
+                            <span class="analytics-donut-item-left">
+                                <span class="analytics-donut-dot" style="background-color: var(--success-color);"></span>
+                                <span>완료됨 (Done)</span>
+                            </span>
+                            <span class="analytics-donut-item-val">${tCounts['Done']}개 · ${donePct}%</span>
+                        </div>
+                    </div>
+                </div>`;
         }
     }
 
-    // 7. [하단 좌측] 작업 중요도 분석
+    // 6. [중단 우측] 작업 중요도 분포
     const prioContent = document.getElementById('analytics-priority-content');
     if (prioContent) {
         if (totalTasks === 0) {
@@ -419,7 +395,7 @@ function renderAnalytics() {
         }
     }
 
-    // 8. [하단 우측] 마감 상태 분석
+    // 7. [하단 좌측] 마감 상태 분석
     const dueContent = document.getElementById('analytics-due-content');
     if (dueContent) {
         if (totalTasks === 0) {
@@ -477,14 +453,63 @@ function renderAnalytics() {
         }
     }
 
-    // 9. [하단 전체] 프로젝트별 작업 완료율
+    // 8. [하단 우측] 전체 작업 종합 요약
+    const summaryContent = document.getElementById('analytics-summary-content');
+    if (summaryContent) {
+        if (totalTasks === 0) {
+            summaryContent.innerHTML = `
+                <div class="analytics-empty">
+                    <i class="fas fa-chart-simple"></i>
+                    <p>등록된 작업이 없습니다.<br><span style="font-size: 0.8rem; opacity: 0.7;">작업을 등록하면 전체적인 생산성 요약을 확인할 수 있습니다.</span></p>
+                </div>`;
+        } else {
+            const inProgressCount = currentTasks.filter(t => t.status === 'In Progress').length;
+            const todoCount = currentTasks.filter(t => t.status === 'To Do').length;
+            const pendingTasks = totalTasks - completedTasks;
+
+            summaryContent.innerHTML = `
+                <div class="analytics-summary-grid">
+                    <div class="analytics-summary-box">
+                        <div class="analytics-summary-label"><i class="fas fa-circle-check" style="color: var(--success-color);"></i> 완료된 작업</div>
+                        <div class="analytics-summary-val" style="color: var(--success-color);">${completedTasks}개</div>
+                        <div class="analytics-summary-sub">전체의 ${completionRate}% 완료</div>
+                    </div>
+                    <div class="analytics-summary-box">
+                        <div class="analytics-summary-label"><i class="fas fa-spinner" style="color: var(--warning-color);"></i> 진행 중인 작업</div>
+                        <div class="analytics-summary-val" style="color: var(--warning-color);">${inProgressCount}개</div>
+                        <div class="analytics-summary-sub">전체의 ${Math.round((inProgressCount / totalTasks) * 100)}% 진행</div>
+                    </div>
+                    <div class="analytics-summary-box">
+                        <div class="analytics-summary-label"><i class="fas fa-list-ul" style="color: var(--info-color);"></i> 대기 중인 작업</div>
+                        <div class="analytics-summary-val" style="color: var(--info-color);">${todoCount}개</div>
+                        <div class="analytics-summary-sub">전체의 ${Math.round((todoCount / totalTasks) * 100)}% 대기</div>
+                    </div>
+                    <div class="analytics-summary-box">
+                        <div class="analytics-summary-label"><i class="fas fa-clock" style="color: var(--danger-color);"></i> 미완료 작업</div>
+                        <div class="analytics-summary-val" style="color: var(--danger-color);">${pendingTasks}개</div>
+                        <div class="analytics-summary-sub">전체의 ${100 - completionRate}% 미완료</div>
+                    </div>
+                </div>
+                <div class="analytics-summary-footer">
+                    <div class="analytics-summary-footer-header">
+                        <span style="font-weight: 600; color: var(--text-primary);"><i class="fas fa-chart-line" style="color: var(--accent-color);"></i> 종합 작업 달성률</span>
+                        <span style="font-weight: 700; color: var(--success-color);">${completionRate}%</span>
+                    </div>
+                    <div class="progress-container" style="height: 8px;">
+                        <div class="progress-bar" style="width: ${completionRate}%; background-color: var(--success-color);"></div>
+                    </div>
+                </div>`;
+        }
+    }
+
+    // 9. [최하단 전체] 프로젝트별 작업 완료율
     const ptContent = document.getElementById('analytics-project-tasks-content');
     if (ptContent) {
         if (totalProjects === 0) {
             ptContent.innerHTML = `
                 <div class="analytics-empty">
                     <i class="fas fa-diagram-project"></i>
-                    <p>등록된 프로젝트가 없습니다.<br><span style="font-size: 0.8rem; opacity: 0.7;">프로젝트를 등록하고 작업을 연결하여 프로젝트별 완료율을 확인해보세요.</span></p>
+                    <p>등록된 프로젝트가 없습니다.<br><span style="font-size: 0.8rem; opacity: 0.7;">새 프로젝트를 시작하고 작업을 할당하여 완료율을 비교해보세요.</span></p>
                 </div>`;
         } else {
             ptContent.innerHTML = '';
@@ -493,7 +518,8 @@ function renderAnalytics() {
                     ? getProjectProgress(proj.id)
                     : { percent: 0, completed: 0, total: 0 };
                 
-                const taskMetaText = total === 0 ? '작업 없음' : `완료 ${completed} / 전체 ${total}`;
+                const pending = total - completed;
+                const taskMetaText = total === 0 ? '연결된 작업 없음' : `${completed} / ${total} 완료 (미완료 ${pending})`;
                 const barColor = percent === 100 ? 'var(--success-color)' : 'var(--accent-color)';
 
                 ptContent.innerHTML += `
@@ -505,7 +531,7 @@ function renderAnalytics() {
                             </span>
                             <div class="analytics-project-meta">
                                 <span>${taskMetaText}</span>
-                                <span style="font-weight: 600; color: ${barColor};">${percent}%</span>
+                                <span style="font-weight: 700; color: ${barColor};">${percent}%</span>
                             </div>
                         </div>
                         <div class="progress-container" style="height: 8px;">
