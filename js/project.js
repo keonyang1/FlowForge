@@ -59,17 +59,17 @@ function renderProjects() {
     currentProjects.forEach(proj => {
         const { percent: progress, completed, total } = getProjectProgress(proj.id);
 
-        const diff = proj.due_date ? Math.ceil((new Date(proj.due_date) - new Date().setHours(0,0,0,0)) / 86400000) : null;
+        const diff = getDueDateDiff(proj.due_date);
         const dday = diff === null ? { t: '기한 없음', c: 'bg-default' } : (diff > 0 ? { t: `D-${diff}`, c: 'bg-info' } : (diff === 0 ? { t: 'D-Day', c: 'bg-warning' } : { t: `D+${Math.abs(diff)} 지연`, c: 'bg-danger' }));
         const statusColor = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-warning' : 'bg-default');
                 
         const completeBtnHtml = proj.status !== '완료됨' 
-            ? `<button class="btn-success" onclick="event.stopPropagation(); confirmCompleteProject('${proj.id}')" style="margin-right: 0.5rem;" title="프로젝트 완료 처리"><i class="fas fa-check"></i> 완료</button>`
+            ? `<button class="btn-success" onclick="event.stopPropagation(); confirmCompleteProject('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="margin-right: 0.5rem;" title="프로젝트 완료 처리"><i class="fas fa-check"></i> 완료</button>`
             : ``;
 
         const editBtnHtml = proj.status !== '완료됨' 
-            ? `<button class="btn-edit-item" onclick="event.stopPropagation(); openEditProjectModal('${proj.id}')" title="프로젝트 수정"><i class="fas fa-edit"></i></button>`
-            : `<button class="btn-edit-item" onclick="event.stopPropagation(); UI.showToast('완료 처리된 프로젝트는 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-lock"></i></button>`;
+            ? `<button class="btn-edit-item" onclick="event.stopPropagation(); openEditProjectModal('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 수정"><i class="fas fa-edit"></i></button>`
+            : `<button class="btn-edit-item" onclick="event.stopPropagation(); UI.showToast('완료 처리된 프로젝트는 수정할 수 없습니다.', 'warning')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="수정 불가 (완료됨)" style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-lock"></i></button>`;
 
         container.innerHTML += `
             <div class="project-card search-target" onclick="openProjectDetail('${proj.id}')">
@@ -78,7 +78,7 @@ function renderProjects() {
                     <div style="display: flex; align-items: center; gap: 0.25rem;">
                         ${completeBtnHtml}
                         ${editBtnHtml}
-                        <button class="btn-delete-item" onclick="event.stopPropagation(); deleteProject('${proj.id}')" title="프로젝트 삭제"><i class="fas fa-trash"></i></button>
+                        <button class="btn-delete-item" onclick="event.stopPropagation(); deleteProject('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 삭제"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <h3 class="project-title search-text">${proj.title}</h3>
@@ -128,18 +128,23 @@ async function updateProjectStatus(projId, status) {
 function deleteProject(projId) {
     UI.confirm('프로젝트 삭제', '이 프로젝트를 삭제하시겠습니까?<br>프로젝트와 관련된 모든 작업이 함께 삭제됩니다.', async () => {
         UI.setGlobalLoading(true);
-        const res = await AppAPI.deleteProject(projId, AppAPI.getUser().user_id);
-        if(res.success) {
-            UI.showToast('프로젝트가 삭제되었습니다.');
-            if (currentProjectId === projId) {
-                currentProjectId = null;
-                UI.switchPage('projects');
+        try {
+            const res = await AppAPI.deleteProject(projId, AppAPI.getUser().user_id);
+            if (res.success) {
+                UI.showToast('프로젝트가 삭제되었습니다.');
+                if (currentProjectId === projId) {
+                    currentProjectId = null;
+                    UI.switchPage('projects');
+                }
+                await loadAppData();
+            } else {
+                UI.showToast(res.message, 'error');
             }
-            loadAppData();
-        } else {
-            UI.showToast(res.message, 'error');
+        } catch (e) {
+            UI.showToast(e.message || '프로젝트 삭제 중 오류가 발생했습니다.', 'error');
+        } finally {
+            UI.setGlobalLoading(false);
         }
-        UI.setGlobalLoading(false);
     });
 }
 
@@ -210,7 +215,7 @@ function renderProjectDetail(projId) {
     const tasks = currentTasks.filter(t => t.project_id === proj.id);
     const { percent: progress, completed: completedCount, total: totalCount } = getProjectProgress(proj.id);
 
-    const diff = proj.due_date ? Math.ceil((new Date(proj.due_date) - new Date().setHours(0,0,0,0)) / 86400000) : null;
+    const diff = getDueDateDiff(proj.due_date);
     const dday = diff === null ? { t: '기한 없음', c: 'bg-default' } : (diff > 0 ? { t: `D-${diff}`, c: 'bg-info' } : (diff === 0 ? { t: 'D-Day', c: 'bg-warning' } : { t: `D+${Math.abs(diff)} 지연`, c: 'bg-danger' }));
     const statusColor = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-warning' : 'bg-default');
 
@@ -274,7 +279,7 @@ function renderProjectDetail(projId) {
                             ${task.description ? `<p class="search-text project-detail-task-desc">${task.description}</p>` : ''}
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.25rem;">
-                            <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="작업 삭제">
+                            <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="작업 삭제">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -283,7 +288,7 @@ function renderProjectDetail(projId) {
                         <div>
                             ${dateMetaHtml}
                         </div>
-                        <div class="project-detail-task-status-control" onclick="event.stopPropagation()">
+                        <div class="project-detail-task-status-control" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                             <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;"><i class="fas fa-arrows-rotate" style="color: var(--accent-color); font-size: 0.7rem;"></i> 상태:</span>
                             <select class="form-control" style="padding: 0.2rem 1.6rem 0.2rem 0.6rem; height: 30px; font-size: 0.775rem; width: auto; min-width: 95px; border-radius: var(--radius-md);" onchange="changeTaskStatus('${task.id}', this.value)">
                                 <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>

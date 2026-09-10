@@ -167,6 +167,8 @@ async function changeTaskStatus(taskId, newStatus) {
     if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
         renderTaskDetailContent(task);
     }
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof renderAnalytics === 'function') renderAnalytics();
     UI.setGlobalLoading(true);
 
     try {
@@ -190,6 +192,8 @@ async function changeTaskStatus(taskId, newStatus) {
         if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
             renderTaskDetailContent(task);
         }
+        if (typeof renderDashboard === 'function') renderDashboard();
+        if (typeof renderAnalytics === 'function') renderAnalytics();
         UI.showToast(err.message || '상태 변경에 실패했습니다.', 'error');
     } finally {
         isStatusUpdating = false;
@@ -370,7 +374,7 @@ function renderTasks() {
             
         card.innerHTML = `
             <div class="task-actions">
-                <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="삭제">
+                <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="삭제">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -384,7 +388,7 @@ function renderTasks() {
             <div class="task-meta">
                 ${dateMetaHtml}
             </div>
-            <div class="task-mobile-status" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()">
+            <div class="task-mobile-status" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()">
                 <label class="task-status-label" for="task-status-select-${task.id}"><i class="fas fa-arrows-rotate"></i> 상태</label>
                 <select class="form-control task-status-select" id="task-status-select-${task.id}" onchange="changeTaskStatus('${task.id}', this.value)">
                     <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
@@ -439,18 +443,23 @@ function renderTasks() {
 function deleteTask(taskId) {
     UI.confirm('작업 삭제', '이 작업을 삭제하시겠습니까?<br>삭제된 작업은 복구할 수 없습니다.', async () => {
         UI.setGlobalLoading(true);
-        const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().user_id);
-        if(res.success) {
-            UI.showToast('작업이 삭제되었습니다.');
-            if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
-                currentDetailTaskId = null;
-                UI.closeModal('task-detail-modal');
+        try {
+            const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().user_id);
+            if(res.success) {
+                UI.showToast('작업이 삭제되었습니다.');
+                if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
+                    currentDetailTaskId = null;
+                    UI.closeModal('task-detail-modal');
+                }
+                await loadAppData();
+            } else {
+                UI.showToast(res.message, 'error');
             }
-            loadAppData();
-        } else {
-            UI.showToast(res.message, 'error');
+        } catch (e) {
+            UI.showToast(e.message || '작업 삭제 중 오류가 발생했습니다.', 'error');
+        } finally {
+            UI.setGlobalLoading(false);
         }
-        UI.setGlobalLoading(false);
     });
 }
 
