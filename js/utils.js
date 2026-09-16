@@ -91,4 +91,15 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-}
+}// Encode an untrusted value as a JavaScript string literal inside an HTML attribute.
+function escapeInlineJsArg(value) {
+    const jsLiteral = JSON.stringify(String(value))
+        .replace(/\u2028/g, '\\u2028')
+        .replace(/\u2029/g, '\\u2029');
+    return escapeHtml(jsLiteral);
+}
+
+function normalizePriorityClass(value) {
+    const priority = String(value || 'medium').toLowerCase();
+    return ['high', 'medium', 'low'].includes(priority) ? priority : 'medium';
+}

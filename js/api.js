@@ -53,6 +53,16 @@ const AppAPI = {
         sessionStorage.removeItem("flowforge_current_page");
     },
 
+    clearUserCaches(userId) {
+        if (typeof userId !== "string" || !userId) return;
+        try {
+            localStorage.removeItem(`flowforge_checklists_${userId}`);
+            localStorage.removeItem(`flowforge_dependencies_${userId}`);
+        } catch (error) {
+            console.warn("Failed to clear local user data:", error);
+        }
+    },
+
     getUser() {
         try {
             const session = localStorage.getItem("flowforge_session");

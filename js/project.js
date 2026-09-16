@@ -64,25 +64,25 @@ function renderProjects() {
         const statusColor = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-warning' : 'bg-default');
                 
         const completeBtnHtml = proj.status !== '완료됨' 
-            ? `<button class="btn-success" onclick="event.stopPropagation(); confirmCompleteProject('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="margin-right: 0.5rem;" title="프로젝트 완료 처리"><i class="fas fa-check"></i> 완료</button>`
+            ? `<button class="btn-success" onclick="event.stopPropagation(); confirmCompleteProject(${escapeInlineJsArg(proj.id)})" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="margin-right: 0.5rem;" title="프로젝트 완료 처리"><i class="fas fa-check"></i> 완료</button>`
             : ``;
 
         const editBtnHtml = proj.status !== '완료됨' 
-            ? `<button class="btn-edit-item" onclick="event.stopPropagation(); openEditProjectModal('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 수정"><i class="fas fa-edit"></i></button>`
+            ? `<button class="btn-edit-item" onclick="event.stopPropagation(); openEditProjectModal(${escapeInlineJsArg(proj.id)})" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 수정"><i class="fas fa-edit"></i></button>`
             : `<button class="btn-edit-item" onclick="event.stopPropagation(); UI.showToast('완료 처리된 프로젝트는 수정할 수 없습니다.', 'warning')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="수정 불가 (완료됨)" style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-lock"></i></button>`;
 
         container.innerHTML += `
-            <div class="project-card search-target" onclick="openProjectDetail('${proj.id}')">
+            <div class="project-card search-target" onclick="openProjectDetail(${escapeInlineJsArg(proj.id)})">
                 <div class="project-header">
-                    <span class="badge ${statusColor}">${proj.status}</span>
+                    <span class="badge ${statusColor}">${escapeHtml(proj.status)}</span>
                     <div style="display: flex; align-items: center; gap: 0.25rem;">
                         ${completeBtnHtml}
                         ${editBtnHtml}
-                        <button class="btn-delete-item" onclick="event.stopPropagation(); deleteProject('${proj.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 삭제"><i class="fas fa-trash"></i></button>
+                        <button class="btn-delete-item" onclick="event.stopPropagation(); deleteProject(${escapeInlineJsArg(proj.id)})" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="프로젝트 삭제"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-                <h3 class="project-title search-text">${proj.title}</h3>
-                <p class="project-desc search-text" title="${proj.description || ''}">${proj.description || '설명이 없습니다.'}</p>
+                <h3 class="project-title search-text">${escapeHtml(proj.title)}</h3>
+                <p class="project-desc search-text" title="${escapeHtml(proj.description || '')}">${escapeHtml(proj.description || '설명이 없습니다.')}</p>
                 <div class="project-progress">
                     <div class="progress-container">
                         <div class="progress-bar" style="width:${progress}%"></div>
@@ -230,14 +230,14 @@ function renderProjectDetail(projId) {
     const statusColor = proj.status === '완료됨' ? 'bg-success' : (proj.status === '진행 중' ? 'bg-warning' : 'bg-default');
 
     const completeBtnHtml = proj.status !== '완료됨'
-        ? `<button class="btn-success" onclick="confirmCompleteProject('${proj.id}')" title="프로젝트 완료 처리" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-check"></i> 완료</button>`
+        ? `<button class="btn-success" onclick="confirmCompleteProject(${escapeInlineJsArg(proj.id)})" title="프로젝트 완료 처리" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-check"></i> 완료</button>`
         : ``;
 
     const editBtnHtml = proj.status !== '완료됨'
-        ? `<button class="btn-secondary" onclick="openEditProjectModal('${proj.id}')" title="프로젝트 수정" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-edit"></i> 수정</button>`
+        ? `<button class="btn-secondary" onclick="openEditProjectModal(${escapeInlineJsArg(proj.id)})" title="프로젝트 수정" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-edit"></i> 수정</button>`
         : `<button class="btn-secondary" onclick="UI.showToast('완료 처리된 프로젝트는 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity: 0.4; cursor: not-allowed; padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-lock"></i> 수정 불가 (완료됨)</button>`;
 
-    const deleteBtnHtml = `<button class="btn-secondary text-danger" onclick="deleteProject('${proj.id}')" title="프로젝트 삭제" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-trash"></i> 삭제</button>`;
+    const deleteBtnHtml = `<button class="btn-secondary text-danger" onclick="deleteProject(${escapeInlineJsArg(proj.id)})" title="프로젝트 삭제" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;"><i class="fas fa-trash"></i> 삭제</button>`;
 
     let tasksHtml = '';
     if (tasks.length === 0) {
@@ -248,7 +248,7 @@ function renderProjectDetail(projId) {
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto;">
                     이 프로젝트에서 진행할 첫 번째 작업을 추가하고<br>진행 상황을 체계적으로 관리해보세요.
                 </p>
-                <button class="btn-primary" onclick="UI.openTaskModal('create', null, '${proj.id}')" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 500;">
+                <button class="btn-primary" onclick="UI.openTaskModal('create', null, ${escapeInlineJsArg(proj.id)})" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 500;">
                     <i class="fas fa-plus"></i> 첫 번째 작업 추가
                 </button>
             </div>`;
@@ -288,7 +288,7 @@ function renderProjectDetail(projId) {
             }
 
             tasksHtml += `
-                <div class="project-detail-task-card search-target${isOverdue ? ' is-overdue' : ''}" onclick="openTaskDetail('${task.id}')" style="cursor: pointer;">
+                <div class="project-detail-task-card search-target${isOverdue ? ' is-overdue' : ''}" onclick="openTaskDetail(${escapeInlineJsArg(task.id)})" style="cursor: pointer;">
                     <div class="project-detail-task-main">
                         <div class="project-detail-task-info">
                             <div class="project-detail-task-badges">
@@ -296,11 +296,11 @@ function renderProjectDetail(projId) {
                                 ${overdueBadgeHtml}
                                 ${checklistBadgeHtml}
                             </div>
-                            <h4 class="search-text project-detail-task-title" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${task.title}</h4>
-                            ${task.description ? `<p class="search-text project-detail-task-desc">${task.description}</p>` : ''}
+                            <h4 class="search-text project-detail-task-title" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${escapeHtml(task.title)}</h4>
+                            ${task.description ? `<p class="search-text project-detail-task-desc">${escapeHtml(task.description)}</p>` : ''}
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.25rem;">
-                            <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="작업 삭제">
+                            <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask(${escapeInlineJsArg(task.id)})" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="작업 삭제">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -311,7 +311,7 @@ function renderProjectDetail(projId) {
                         </div>
                         <div class="project-detail-task-status-control" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                             <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;"><i class="fas fa-arrows-rotate" style="color: var(--accent-color); font-size: 0.7rem;"></i> 상태:</span>
-                            <select class="form-control" style="padding: 0.2rem 1.6rem 0.2rem 0.6rem; height: 30px; font-size: 0.775rem; width: auto; min-width: 95px; border-radius: var(--radius-md);" onchange="changeTaskStatus('${task.id}', this.value)">
+                            <select class="form-control" style="padding: 0.2rem 1.6rem 0.2rem 0.6rem; height: 30px; font-size: 0.775rem; width: auto; min-width: 95px; border-radius: var(--radius-md);" onchange="changeTaskStatus(${escapeInlineJsArg(task.id)}, this.value)">
                                 <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
                                 <option value="In Progress"${task.status === 'In Progress' ? ' selected' : ''}>진행 중</option>
                                 <option value="Done"${task.status === 'Done' ? ' selected' : ''}>완료됨</option>
@@ -324,7 +324,7 @@ function renderProjectDetail(projId) {
     }
 
     const addTaskBtnHtml = tasks.length > 0
-        ? `<button class="btn-primary" onclick="UI.openTaskModal('create', null, '${proj.id}')">
+        ? `<button class="btn-primary" onclick="UI.openTaskModal('create', null, ${escapeInlineJsArg(proj.id)})">
                 <i class="fas fa-plus"></i> 작업 추가
             </button>`
         : '';
@@ -340,10 +340,10 @@ function renderProjectDetail(projId) {
             <div class="project-detail-top">
                 <div class="project-detail-title-area">
                     <div class="project-detail-meta-badges">
-                        <span class="badge ${statusColor}">${proj.status}</span>
+                    <span class="badge ${statusColor}">${escapeHtml(proj.status)}</span>
                         <span class="badge ${dday.c}">${dday.t}</span>
                     </div>
-                    <h2 class="project-detail-title">${proj.title}</h2>
+                    <h2 class="project-detail-title">${escapeHtml(proj.title)}</h2>
                     <div class="project-detail-due">
                         <i class="far fa-calendar"></i> 목표 마감일: ${formatFriendlyDate(proj.due_date)}
                     </div>
@@ -354,7 +354,7 @@ function renderProjectDetail(projId) {
                     ${deleteBtnHtml}
                 </div>
             </div>
-            <div class="project-detail-desc">${proj.description || '등록된 설명이 없습니다.'}</div>
+            <div class="project-detail-desc">${escapeHtml(proj.description || '등록된 설명이 없습니다.')}</div>
         </div>
 
         <div class="project-detail-progress-card">

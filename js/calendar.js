@@ -326,12 +326,12 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
         itemsHtml += `
             <div class="calendar-item calendar-item-project${doneClass}"
                  draggable="true"
-                 ondragstart="handleCalendarDragStart(event, 'project', '${proj.id}', '${dateStr}')"
+                 ondragstart="handleCalendarDragStart(event, 'project', ${escapeInlineJsArg(proj.id)}, ${escapeInlineJsArg(dateStr)})"
                  ondragend="handleCalendarDragEnd(event)"
-                 onclick="handleCalendarItemClick(event, 'project', '${proj.id}')"
-                 title="[프로젝트] ${proj.title} (${proj.status})">
+                 onclick="handleCalendarItemClick(event, 'project', ${escapeInlineJsArg(proj.id)})"
+                 title="[프로젝트] ${escapeHtml(proj.title)} (${escapeHtml(proj.status)})">
                 <i class="fas fa-folder"></i>
-                <span class="calendar-item-text">${proj.title}</span>
+                <span class="calendar-item-text">${escapeHtml(proj.title)}</span>
             </div>`;
         renderedCount++;
     }
@@ -341,7 +341,7 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
         const task = tasks[i];
         const isDone = task.status === 'Done';
         const doneClass = isDone ? ' is-done' : '';
-        const prio = (task.priority || 'medium').toLowerCase();
+        const prio = normalizePriorityClass(task.priority);
         const prioClass = `prio-${prio}`;
         const diff = typeof getDueDateDiff === 'function' ? getDueDateDiff(task.due_date) : null;
         const isImminent = !isDone && task.priority === 'High' && diff !== null && diff <= 1;
@@ -351,13 +351,13 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
         itemsHtml += `
             <div class="calendar-item calendar-item-task ${prioClass}${imminentClass}${doneClass}"
                  draggable="true"
-                 ondragstart="handleCalendarDragStart(event, 'task', '${task.id}', '${dateStr}')"
+                 ondragstart="handleCalendarDragStart(event, 'task', ${escapeInlineJsArg(task.id)}, ${escapeInlineJsArg(dateStr)})"
                  ondragend="handleCalendarDragEnd(event)"
-                 onclick="handleCalendarItemClick(event, 'task', '${task.id}')"
-                 title="[작업] ${task.title} (중요도: ${task.priority || 'Medium'}, 상태: ${task.status})">
+                 onclick="handleCalendarItemClick(event, 'task', ${escapeInlineJsArg(task.id)})"
+                 title="[작업] ${escapeHtml(task.title)} (중요도: ${escapeHtml(task.priority || 'Medium')}, 상태: ${escapeHtml(task.status)})">
                 <span class="prio-indicator prio-${prio}"></span>
                 <i class="fas ${icon}"></i>
-                <span class="calendar-item-text">${task.title}</span>
+                <span class="calendar-item-text">${escapeHtml(task.title)}</span>
             </div>`;
         renderedCount++;
     }
@@ -366,7 +366,7 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
     if (totalItems > maxVisible) {
         const moreCount = totalItems - maxVisible;
         itemsHtml += `
-            <button type="button" class="calendar-more-btn" onclick="event.stopPropagation(); selectCalendarDate('${dateStr}', true)" title="${moreCount}개 일정 더보기 (일간 뷰로 이동)">
+            <button type="button" class="calendar-more-btn" onclick="event.stopPropagation(); selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)" title="${moreCount}개 일정 더보기 (일간 뷰로 이동)">
                 +${moreCount}개 더보기
             </button>`;
     }
@@ -375,11 +375,11 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
 
     return `
         <div class="${dayClasses.join(' ')}"
-             data-date="${dateStr}"
+             data-date="${escapeHtml(dateStr)}"
              ondragover="handleCalendarDragOver(event)"
              ondragleave="handleCalendarDragLeave(event)"
              ondrop="handleCalendarDrop(event)"
-             onclick="selectCalendarDate('${dateStr}', true)">
+             onclick="selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)">
             <div class="calendar-day-header">
                 <span class="calendar-day-num">${dayNum}</span>
                 ${todayBadge}
@@ -425,12 +425,12 @@ function renderWeekView(startOfWeek) {
             itemsHtml += `
                 <div class="calendar-item calendar-item-project${doneClass}"
                      draggable="true"
-                     ondragstart="handleCalendarDragStart(event, 'project', '${proj.id}', '${dateStr}')"
+                     ondragstart="handleCalendarDragStart(event, 'project', ${escapeInlineJsArg(proj.id)}, ${escapeInlineJsArg(dateStr)})"
                      ondragend="handleCalendarDragEnd(event)"
-                     onclick="handleCalendarItemClick(event, 'project', '${proj.id}')"
-                     title="[프로젝트] ${proj.title}">
+                     onclick="handleCalendarItemClick(event, 'project', ${escapeInlineJsArg(proj.id)})"
+                     title="[프로젝트] ${escapeHtml(proj.title)}">
                     <i class="fas fa-folder"></i>
-                    <span class="calendar-item-text">${proj.title}</span>
+                    <span class="calendar-item-text">${escapeHtml(proj.title)}</span>
                 </div>`;
         });
 
@@ -438,7 +438,7 @@ function renderWeekView(startOfWeek) {
         tasks.forEach(task => {
             const isDone = task.status === 'Done';
             const doneClass = isDone ? ' is-done' : '';
-            const prio = (task.priority || 'medium').toLowerCase();
+            const prio = normalizePriorityClass(task.priority);
             const prioClass = `prio-${prio}`;
             const diff = typeof getDueDateDiff === 'function' ? getDueDateDiff(task.due_date) : null;
             const isImminent = !isDone && task.priority === 'High' && diff !== null && diff <= 1;
@@ -448,13 +448,13 @@ function renderWeekView(startOfWeek) {
             itemsHtml += `
                 <div class="calendar-item calendar-item-task ${prioClass}${imminentClass}${doneClass}"
                      draggable="true"
-                     ondragstart="handleCalendarDragStart(event, 'task', '${task.id}', '${dateStr}')"
+                     ondragstart="handleCalendarDragStart(event, 'task', ${escapeInlineJsArg(task.id)}, ${escapeInlineJsArg(dateStr)})"
                      ondragend="handleCalendarDragEnd(event)"
-                     onclick="handleCalendarItemClick(event, 'task', '${task.id}')"
-                     title="[작업] ${task.title} (중요도: ${task.priority || 'Medium'})">
+                     onclick="handleCalendarItemClick(event, 'task', ${escapeInlineJsArg(task.id)})"
+                     title="[작업] ${escapeHtml(task.title)} (중요도: ${escapeHtml(task.priority || 'Medium')})">
                     <span class="prio-indicator prio-${prio}"></span>
                     <i class="fas ${icon}"></i>
-                    <span class="calendar-item-text">${task.title}</span>
+                    <span class="calendar-item-text">${escapeHtml(task.title)}</span>
                 </div>`;
         });
 
@@ -462,11 +462,11 @@ function renderWeekView(startOfWeek) {
 
         gridHtml += `
             <div class="${colClasses.join(' ')}"
-                 data-date="${dateStr}"
+                 data-date="${escapeHtml(dateStr)}"
                  ondragover="handleCalendarDragOver(event)"
                  ondragleave="handleCalendarDragLeave(event)"
                  ondrop="handleCalendarDrop(event)">
-                <div class="calendar-week-col-header" onclick="selectCalendarDate('${dateStr}', true)" title="클릭하여 일간 뷰로 이동">
+                <div class="calendar-week-col-header" onclick="selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)" title="클릭하여 일간 뷰로 이동">
                     <span class="calendar-week-day-name${nameColorClass}">${dayNames[i]}</span>
                     <span class="calendar-week-day-num">${dayNum}</span>
                     ${todayBadge}
@@ -492,7 +492,7 @@ function renderDayView() {
 
     let html = `
         <div class="calendar-day-view"
-             data-date="${dateStr}"
+             data-date="${escapeHtml(dateStr)}"
              ondragover="handleCalendarDragOver(event)"
              ondragleave="handleCalendarDragLeave(event)"
              ondrop="handleCalendarDrop(event)">
@@ -532,12 +532,12 @@ function renderDayView() {
                 const statusBadge = p.status === '완료됨' ? 'bg-success' : (p.status === '진행 중' ? 'bg-warning' : 'bg-default');
                 const doneClass = p.status === '완료됨' ? ' is-done' : '';
                 html += `
-                    <div class="calendar-day-card${doneClass}" onclick="openProjectDetail('${p.id}')">
+                    <div class="calendar-day-card${doneClass}" onclick="openProjectDetail(${escapeInlineJsArg(p.id)})">
                         <div class="calendar-day-card-top">
-                            <span class="calendar-day-card-title"><i class="fas fa-folder" style="color: var(--accent-color); margin-right: 0.35rem;"></i> ${p.title}</span>
-                            <span class="badge ${statusBadge}">${p.status}</span>
+                            <span class="calendar-day-card-title"><i class="fas fa-folder" style="color: var(--accent-color); margin-right: 0.35rem;"></i> ${escapeHtml(p.title)}</span>
+                            <span class="badge ${statusBadge}">${escapeHtml(p.status)}</span>
                         </div>
-                        <p class="calendar-day-card-desc">${p.description || '프로젝트 설명이 없습니다.'}</p>
+                        <p class="calendar-day-card-desc">${escapeHtml(p.description || '프로젝트 설명이 없습니다.')}</p>
                     </div>`;
             });
         }
@@ -564,21 +564,22 @@ function renderDayView() {
                 const proj = t.project_id ? (currentProjects || []).find(p => p.id === t.project_id) : null;
                 const projName = proj ? proj.title : '독립 작업';
                 const doneClass = isDone ? ' is-done' : '';
+                const priorityClass = normalizePriorityClass(t.priority);
 
                 html += `
-                    <div class="calendar-day-card${doneClass}" onclick="openTaskDetail('${t.id}')">
+                    <div class="calendar-day-card${doneClass}" onclick="openTaskDetail(${escapeInlineJsArg(t.id)})">
                         <div class="calendar-day-card-top">
                             <span class="calendar-day-card-title">
                                 <i class="fas ${isDone ? 'fa-check-circle text-success' : 'fa-circle-dot'}" style="margin-right: 0.35rem;"></i>
-                                ${t.title}
+                                ${escapeHtml(t.title)}
                             </span>
                             <span class="badge ${statusBadge}">${statusKor}</span>
                         </div>
-                        <p class="calendar-day-card-desc">${t.description || '작업 설명이 없습니다.'}</p>
+                        <p class="calendar-day-card-desc">${escapeHtml(t.description || '작업 설명이 없습니다.')}</p>
                         <div class="calendar-day-card-bottom">
-                            <span class="badge bg-default" style="font-size: 0.7rem;"><i class="fas fa-folder-open"></i> ${projName}</span>
+                            <span class="badge bg-default" style="font-size: 0.7rem;"><i class="fas fa-folder-open"></i> ${escapeHtml(projName)}</span>
                             <span style="font-size: 0.725rem; font-weight: 600; color: var(--${prioColor});">
-                                <span class="prio-indicator prio-${(t.priority || 'medium').toLowerCase()}"></span> 중요도: ${prioKor}
+                                <span class="prio-indicator prio-${priorityClass}"></span> 중요도: ${prioKor}
                             </span>
                         </div>
                     </div>`;

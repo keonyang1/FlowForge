@@ -51,23 +51,23 @@ function renderTaskDetailContent(task) {
 
     let projHtml = '';
     if (proj) {
-        projHtml = `<button type="button" class="task-detail-project-btn" onclick="navigateToProjectFromTaskDetail('${proj.id}')" title="프로젝트 상세 페이지로 이동">
+        projHtml = `<button type="button" class="task-detail-project-btn" onclick="navigateToProjectFromTaskDetail(${escapeInlineJsArg(proj.id)})" title="프로젝트 상세 페이지로 이동">
             <i class="fas fa-folder-open"></i>
-            <span>${proj.title}</span>
+            <span>${escapeHtml(proj.title)}</span>
             <i class="fas fa-arrow-right" style="font-size: 0.7rem; opacity: 0.7;"></i>
         </button>`;
     } else {
-        projHtml = `<span style="color: var(--text-muted); font-size: 0.85rem;">${projName}</span>`;
+        projHtml = `<span style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(projName)}</span>`;
     }
 
     const createdMetaHtml = task.created_at ? `
         <div class="task-detail-meta-item">
             <span class="task-detail-meta-label"><i class="far fa-calendar-plus"></i> 등록일</span>
-            <div class="task-detail-meta-val"><span style="color: var(--text-muted); font-size: 0.8rem;">${task.created_at}</span></div>
+            <div class="task-detail-meta-val"><span style="color: var(--text-muted); font-size: 0.8rem;">${escapeHtml(task.created_at)}</span></div>
         </div>` : '';
 
     body.innerHTML = `
-        <h3 class="task-detail-title${task.status === 'Done' ? ' is-done' : ''}">${task.title}</h3>
+        <h3 class="task-detail-title${task.status === 'Done' ? ' is-done' : ''}">${escapeHtml(task.title)}</h3>
 
         <div class="task-detail-meta-grid">
             <div class="task-detail-meta-item">
@@ -78,7 +78,7 @@ function renderTaskDetailContent(task) {
             <div class="task-detail-meta-item">
                 <span class="task-detail-meta-label"><i class="fas fa-arrows-rotate"></i> 상태</span>
                 <div class="task-detail-meta-val">
-                    <select class="form-control task-detail-status-select" onchange="changeTaskStatusFromDetail('${task.id}', this.value)">
+                    <select class="form-control task-detail-status-select" onchange="changeTaskStatusFromDetail(${escapeInlineJsArg(task.id)}, this.value)">
                         <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
                         <option value="In Progress"${task.status === 'In Progress' ? ' selected' : ''}>진행 중</option>
                         <option value="Done"${task.status === 'Done' ? ' selected' : ''}>완료됨</option>
@@ -105,7 +105,7 @@ function renderTaskDetailContent(task) {
         </div>
 
         <div class="task-detail-desc-label"><i class="fas fa-align-left"></i> 작업 설명</div>
-        <div class="task-detail-desc-box">${task.description ? task.description : '<span style="color: var(--text-muted); font-style: italic;">설명이 없습니다.</span>'}</div>
+        <div class="task-detail-desc-box">${task.description ? escapeHtml(task.description) : '<span style="color: var(--text-muted); font-style: italic;">설명이 없습니다.</span>'}</div>
         <div id="task-detail-dependency-container" class="task-dependency-section"></div>
         <div id="task-detail-checklist-container" class="task-checklist-section"></div>
     `;
@@ -114,11 +114,11 @@ function renderTaskDetailContent(task) {
     renderTaskChecklist(task.id);
 
     const editBtnHtml = task.status !== 'Done'
-        ? `<button type="button" class="btn-secondary" onclick="editTaskFromDetail('${task.id}')"><i class="fas fa-edit"></i> 수정</button>`
+        ? `<button type="button" class="btn-secondary" onclick="editTaskFromDetail(${escapeInlineJsArg(task.id)})"><i class="fas fa-edit"></i> 수정</button>`
         : `<button type="button" class="btn-secondary" onclick="UI.showToast('완료된 작업은 수정할 수 없습니다.', 'warning')" title="수정 불가 (완료됨)" style="opacity: 0.4; cursor: not-allowed;"><i class="fas fa-lock"></i> 수정 불가</button>`;
 
     footer.innerHTML = `
-        <button type="button" class="btn-secondary text-danger" onclick="deleteTaskFromDetail('${task.id}')"><i class="fas fa-trash"></i> 삭제</button>
+        <button type="button" class="btn-secondary text-danger" onclick="deleteTaskFromDetail(${escapeInlineJsArg(task.id)})"><i class="fas fa-trash"></i> 삭제</button>
         <div class="task-detail-footer-right">
             ${editBtnHtml}
             <button type="button" class="btn-primary" onclick="closeTaskDetail()">닫기</button>
@@ -142,20 +142,20 @@ function renderTaskChecklist(taskId) {
         itemsHtml = `<div class="task-checklist-empty"><i class="far fa-clipboard"></i> 등록된 세부 작업이 없습니다. 아래에서 추가해보세요.</div>`;
     } else {
         itemsHtml = `<ul class="task-checklist-list">` + items.map(item => {
-            const escapedText = typeof escapeHtml === 'function' ? escapeHtml(item.text) : (item.text || '');
+            const escapedText = escapeHtml(item.text);
             return `
-                <li class="task-checklist-item${item.is_completed ? ' is-completed' : ''}" id="checklist-item-${item.id}">
-                    <button type="button" class="task-checklist-check-btn${item.is_completed ? ' is-completed' : ''}" onclick="toggleChecklistItem('${taskId}', '${item.id}')" title="${item.is_completed ? '미완료로 표시' : '완료로 표시'}" aria-label="체크박스">
+                <li class="task-checklist-item${item.is_completed ? ' is-completed' : ''}" id="checklist-item-${escapeHtml(item.id)}">
+                    <button type="button" class="task-checklist-check-btn${item.is_completed ? ' is-completed' : ''}" onclick="toggleChecklistItem(${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(item.id)})" title="${item.is_completed ? '미완료로 표시' : '완료로 표시'}" aria-label="체크박스">
                         <span class="task-checklist-custom-checkbox"><i class="fas fa-check"></i></span>
                     </button>
-                    <div class="task-checklist-item-content" id="checklist-text-wrap-${item.id}">
-                        <span class="task-checklist-item-text${item.is_completed ? ' is-completed' : ''}" onclick="toggleChecklistItem('${taskId}', '${item.id}')" title="클릭하여 상태 변경">${escapedText}</span>
+                    <div class="task-checklist-item-content" id="checklist-text-wrap-${escapeHtml(item.id)}">
+                        <span class="task-checklist-item-text${item.is_completed ? ' is-completed' : ''}" onclick="toggleChecklistItem(${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(item.id)})" title="클릭하여 상태 변경">${escapedText}</span>
                     </div>
                     <div class="task-checklist-item-actions">
-                        <button type="button" class="btn-icon-subtle" onclick="startEditChecklistItem('${taskId}', '${item.id}')" title="세부 작업 수정">
+                        <button type="button" class="btn-icon-subtle" onclick="startEditChecklistItem(${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(item.id)})" title="세부 작업 수정">
                             <i class="fas fa-pen"></i>
                         </button>
-                        <button type="button" class="btn-icon-subtle btn-delete-checklist" onclick="deleteChecklistItem('${taskId}', '${item.id}')" title="세부 작업 삭제">
+                        <button type="button" class="btn-icon-subtle btn-delete-checklist" onclick="deleteChecklistItem(${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(item.id)})" title="세부 작업 삭제">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -179,8 +179,8 @@ function renderTaskChecklist(taskId) {
         ${itemsHtml}
         <div class="task-checklist-add-wrap">
             <div class="task-checklist-add-input-group">
-                <input type="text" id="checklist-new-input-${taskId}" class="form-control task-checklist-add-input" placeholder="세부 작업 추가... (Enter로 등록)" maxlength="150" onkeydown="if(event.key === 'Enter'){ if(event.isComposing) return; event.preventDefault(); addChecklistItem('${taskId}'); }">
-                <button type="button" id="btn-add-checklist-${taskId}" class="btn-primary task-checklist-add-btn" onclick="addChecklistItem('${taskId}')">
+                <input type="text" id="checklist-new-input-${escapeHtml(taskId)}" class="form-control task-checklist-add-input" placeholder="세부 작업 추가... (Enter로 등록)" maxlength="150" onkeydown="if(event.key === 'Enter'){ if(event.isComposing) return; event.preventDefault(); addChecklistItem(${escapeInlineJsArg(taskId)}); }">
+                <button type="button" id="btn-add-checklist-${escapeHtml(taskId)}" class="btn-primary task-checklist-add-btn" onclick="addChecklistItem(${escapeInlineJsArg(taskId)})">
                     <i class="fas fa-plus"></i> 추가
                 </button>
             </div>
@@ -301,13 +301,13 @@ function startEditChecklistItem(taskId, itemId) {
     const wrap = document.getElementById(`checklist-text-wrap-${itemId}`);
     if (!item || !wrap) return;
 
-    const escapedText = typeof escapeHtml === 'function' ? escapeHtml(item.text) : (item.text || '');
+    const escapedText = escapeHtml(item.text);
     wrap.innerHTML = `
         <div class="task-checklist-inline-edit">
-            <input type="text" id="checklist-edit-input-${itemId}" class="form-control task-checklist-inline-input" value="${escapedText}" maxlength="150" onkeydown="handleChecklistEditKey(event, '${taskId}', '${itemId}')">
+            <input type="text" id="checklist-edit-input-${escapeHtml(itemId)}" class="form-control task-checklist-inline-input" value="${escapedText}" maxlength="150" onkeydown="handleChecklistEditKey(event, ${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(itemId)})">
             <div class="task-checklist-inline-edit-btns">
-                <button type="button" class="btn-icon-save" onclick="saveEditChecklistItem('${taskId}', '${itemId}')" title="저장"><i class="fas fa-check"></i></button>
-                <button type="button" class="btn-icon-cancel" onclick="renderTaskChecklist('${taskId}')" title="취소"><i class="fas fa-times"></i></button>
+                <button type="button" class="btn-icon-save" onclick="saveEditChecklistItem(${escapeInlineJsArg(taskId)}, ${escapeInlineJsArg(itemId)})" title="저장"><i class="fas fa-check"></i></button>
+                <button type="button" class="btn-icon-cancel" onclick="renderTaskChecklist(${escapeInlineJsArg(taskId)})" title="취소"><i class="fas fa-times"></i></button>
             </div>
         </div>
     `;
@@ -712,17 +712,17 @@ function renderTasks() {
             
         card.innerHTML = `
             <div class="task-actions">
-                <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask('${task.id}')" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="삭제">
+                <button class="btn-delete-item" onclick="event.stopPropagation(); deleteTask(${escapeInlineJsArg(task.id)})" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" title="삭제">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div style="margin-bottom: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                <span class="badge bg-default search-text" style="font-size: 0.7rem; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${projName}">${projName}</span>
+                <span class="badge bg-default search-text" style="font-size: 0.7rem; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(projName)}">${escapeHtml(projName)}</span>
                 <span style="font-size: 0.7rem; color: var(--${prioColor}); border: 1px solid var(--${prioColor}); border-radius: 4px; padding: 0.1rem 0.4rem; font-weight: 600;">${prioKor}</span>
                 ${overdueBadgeHtml}
             </div>
-            <h4 class="search-text" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}" title="${task.title}">${task.title}</h4>
-            <p class="task-desc search-text" title="${task.description || ''}">${task.description || '설명이 없습니다.'}</p>
+            <h4 class="search-text" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}" title="${escapeHtml(task.title)}">${escapeHtml(task.title)}</h4>
+            <p class="task-desc search-text" title="${escapeHtml(task.description || '')}">${escapeHtml(task.description || '설명이 없습니다.')}</p>
             <div class="task-meta">
                 ${dateMetaHtml}
                 <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
@@ -731,8 +731,8 @@ function renderTasks() {
                 </div>
             </div>
             <div class="task-mobile-status" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation()">
-                <label class="task-status-label" for="task-status-select-${task.id}"><i class="fas fa-arrows-rotate"></i> 상태</label>
-                <select class="form-control task-status-select" id="task-status-select-${task.id}" onchange="changeTaskStatus('${task.id}', this.value)">
+                <label class="task-status-label" for="task-status-select-${escapeHtml(task.id)}"><i class="fas fa-arrows-rotate"></i> 상태</label>
+                <select class="form-control task-status-select" id="task-status-select-${escapeHtml(task.id)}" onchange="changeTaskStatus(${escapeInlineJsArg(task.id)}, this.value)">
                     <option value="To Do"${task.status === 'To Do' ? ' selected' : ''}>해야 할 일</option>
                     <option value="In Progress"${task.status === 'In Progress' ? ' selected' : ''}>진행 중</option>
                     <option value="Done"${task.status === 'Done' ? ' selected' : ''}>완료됨</option>
@@ -1120,9 +1120,9 @@ function renderTaskDependencies(taskId) {
                 return `
                     <li class="task-dep-item">
                         <div class="task-dep-item-main">
-                            <span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">삭제된 작업 (ID: ${item.predTaskId})</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">삭제된 작업 (ID: ${escapeHtml(item.predTaskId)})</span>
                         </div>
-                        <button type="button" class="btn-icon-subtle btn-delete-dep" onclick="deleteDependency('${item.depId}', '${taskId}')" title="연결 삭제">
+                        <button type="button" class="btn-icon-subtle btn-delete-dep" onclick="deleteDependency(${escapeInlineJsArg(item.depId)}, ${escapeInlineJsArg(taskId)})" title="연결 삭제">
                             <i class="fas fa-times"></i>
                         </button>
                     </li>
@@ -1148,7 +1148,7 @@ function renderTaskDependencies(taskId) {
                 <li class="task-dep-item${pred.status === 'Done' ? ' is-done' : ''}">
                     <div class="task-dep-item-main">
                         <div class="task-dep-item-top">
-                            <button type="button" class="task-dep-title-link" onclick="openTaskDetail('${pred.id}')" title="작업 상세로 이동">
+                            <button type="button" class="task-dep-title-link" onclick="openTaskDetail(${escapeInlineJsArg(pred.id)})" title="작업 상세로 이동">
                                 <i class="fas fa-arrow-turn-up fa-rotate-90" style="font-size: 0.7rem; color: var(--accent-color);"></i>
                                 <span class="task-dep-title-text${pred.status === 'Done' ? ' is-done' : ''}">${escapeHtml(pred.title)}</span>
                                 <i class="fas fa-arrow-right" style="font-size: 0.65rem; opacity: 0.5;"></i>
@@ -1160,7 +1160,7 @@ function renderTaskDependencies(taskId) {
                             ${dueText ? `<span style="font-size: 0.75rem; color: var(--text-muted);"><i class="far fa-calendar"></i> ${dueText}</span>` : ''}
                         </div>
                     </div>
-                    <button type="button" class="btn-icon-subtle btn-delete-dep" onclick="deleteDependency('${item.depId}', '${taskId}')" title="선행 작업 연결 해제">
+                    <button type="button" class="btn-icon-subtle btn-delete-dep" onclick="deleteDependency(${escapeInlineJsArg(item.depId)}, ${escapeInlineJsArg(taskId)})" title="선행 작업 연결 해제">
                         <i class="fas fa-times"></i>
                     </button>
                 </li>
@@ -1174,7 +1174,7 @@ function renderTaskDependencies(taskId) {
                 <span class="task-dep-title"><i class="fas fa-link"></i> 선행 작업 (Predecessors)</span>
                 <span class="task-dep-count-badge">${deps.length}개</span>
             </div>
-            <button type="button" class="btn-secondary btn-sm task-dep-add-btn" onclick="openAddDependencyModal('${taskId}')">
+            <button type="button" class="btn-secondary btn-sm task-dep-add-btn" onclick="openAddDependencyModal(${escapeInlineJsArg(taskId)})">
                 <i class="fas fa-plus"></i> 선행 작업 추가
             </button>
         </div>
@@ -1280,9 +1280,9 @@ function renderDependencyCandidates(taskId, filterText = '') {
         }
 
         return `
-            <div class="task-dep-candidate-item${isDisabled ? ' is-disabled' : ''}${isSelected ? ' is-selected' : ''}" ${!isDisabled ? `onclick="selectDependencyCandidate('${t.id}')"` : ''}>
+            <div class="task-dep-candidate-item${isDisabled ? ' is-disabled' : ''}${isSelected ? ' is-selected' : ''}" ${!isDisabled ? `onclick="selectDependencyCandidate(${escapeInlineJsArg(t.id)})"` : ''}>
                 <div class="task-dep-candidate-radio">
-                    <input type="radio" name="dep_candidate_radio" value="${t.id}" ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+                    <input type="radio" name="dep_candidate_radio" value="${escapeHtml(t.id)}" ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                 </div>
                 <div class="task-dep-candidate-info">
                     <div class="task-dep-candidate-title-row">

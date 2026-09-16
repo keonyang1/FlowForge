@@ -104,8 +104,17 @@ const UI = {
         
         form.reset();
         
-        select.innerHTML = '<option value="">선택 안함</option>';
-        currentProjects.forEach(p => select.innerHTML += `<option value="${p.id}">${p.title}</option>`);
+        select.replaceChildren();
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '선택 안함';
+        select.appendChild(emptyOption);
+        currentProjects.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = p.title || '';
+            select.appendChild(option);
+        });
         
         form.dataset.mode = mode;
         if (taskId) {
@@ -140,13 +149,19 @@ const UI = {
     showToast(msg, type = 'success') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        let icon = 'fa-check-circle';
-        if(type === 'error') icon = 'fa-exclamation-circle';
-        if(type === 'warning') icon = 'fa-exclamation-triangle';
-        if(type === 'ai') icon = 'fa-magic';
-
-        toast.innerHTML = `<i class="fas ${icon}"></i> <span>${msg}</span>`;
+        const variants = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            ai: 'fa-magic'
+        };
+        const toastType = Object.prototype.hasOwnProperty.call(variants, type) ? type : 'success';
+        toast.className = 'toast ' + toastType;
+        const icon = document.createElement('i');
+        icon.className = 'fas ' + variants[toastType];
+        const message = document.createElement('span');
+        message.textContent = String(msg ?? '');
+        toast.append(icon, document.createTextNode(' '), message);
         container.appendChild(toast);
         setTimeout(() => { toast.classList.add('fadeOut'); setTimeout(() => toast.remove(), 300); }, 3000);
     },
@@ -192,7 +207,7 @@ const UI = {
         button.dataset.originalText = button.innerHTML;
         button.disabled = true;
         button.style.pointerEvents = "none";
-        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${escapeHtml(loadingText)}`;
     },
     unlockButton(button) {
         if (!button) return;

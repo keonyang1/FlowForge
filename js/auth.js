@@ -3,6 +3,15 @@
 let currentHelpPage = 1;
 const TOTAL_HELP_PAGES = 10;
 let helpAnimationTimers = [];
+const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+function getAvatarFileError(file) {
+    if (!file) return "";
+    if (file.size > MAX_AVATAR_SIZE_BYTES) return "2MB 이하 이미지만 업로드 가능합니다.";
+    if (!ALLOWED_AVATAR_TYPES.has(file.type)) return "PNG, JPEG, WebP 이미지만 업로드할 수 있습니다.";
+    return "";
+}
 
 function clearHelpTimers() {
     helpAnimationTimers.forEach(t => clearTimeout(t));
@@ -142,8 +151,10 @@ function initAuth() {
     document.getElementById("profile-avatar-file").addEventListener("change",(e) => {
         const file=e.target.files[0];
         if(!file) return;
-        if(file.size>2*1024*1024){
-            UI.showToast("2MB 이하 이미지만 업로드 가능합니다.","warning");
+        const fileError = getAvatarFileError(file);
+        if (fileError) {
+            e.target.value = "";
+            UI.showToast(fileError, "warning");
             return;
         }
         const reader=new FileReader();
@@ -173,6 +184,14 @@ function initAuth() {
     document.getElementById('form-profile').onsubmit = async (e) => {
         e.preventDefault();
         const newNickname = document.getElementById('prof-nickname').value;
+        const avatarInput = document.getElementById("profile-avatar-file");
+        const avatarFile = avatarInput.files[0];
+        const avatarFileError = getAvatarFileError(avatarFile);
+        if (avatarFileError) {
+            avatarInput.value = "";
+            UI.showToast(avatarFileError, "warning");
+            return;
+        }
 
         const btn = document.getElementById('btn-submit-profile');
         const originalText = btn.textContent;
@@ -199,7 +218,6 @@ function initAuth() {
             }
 
             // 2. 프로필 사진 업로드
-            const avatarFile = document.getElementById("profile-avatar-file").files[0];
             if (avatarFile) {
                 const base64 = await new Promise(resolve => {
                     const reader = new FileReader();
@@ -270,9 +288,12 @@ function initAuth() {
         UI.confirm("회원 탈퇴", "정말 회원 탈퇴하시겠습니까?<br><br>모든 프로젝트와 작업이 함께 영구 삭제됩니다.<br>삭제된 데이터는 복구할 수 없습니다.", async () => {
             UI.setGlobalLoading(true);
             try {
-                const res = await AppAPI.deleteAccount(AppAPI.getUser().user_id, pw);
+                const user = AppAPI.getUser();
+                if (!user) throw new Error("로그인이 필요합니다.");
+                const res = await AppAPI.deleteAccount(user.user_id, pw);
                 if (res.success) {
                     UI.showToast("회원 탈퇴가 완료되었습니다.");
+                    AppAPI.clearUserCaches(user.user_id);
                     AppAPI.logout();
                     resetAppUI();
                     document
