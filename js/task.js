@@ -258,6 +258,7 @@ async function addChecklistItem(taskId) {
     const user = typeof AppAPI !== 'undefined' && AppAPI.getUser ? AppAPI.getUser() : null;
     const userId = user ? user.user_id : '';
 
+    let saved = false;
     try {
         if (typeof AppAPI !== 'undefined' && AppAPI.addChecklistItem && userId) {
             const res = await AppAPI.addChecklistItem(taskId, text, userId);
@@ -271,12 +272,13 @@ async function addChecklistItem(taskId) {
                     currentChecklists = [];
                 }
                 if (!currentChecklists.some(c => c.id === createdItem.id)) {
-                    currentChecklists.push(createdItem);
+                    currentChecklists.push({ ...createdItem, is_completed: normalizeBoolean(createdItem.is_completed) });
                 }
                 try {
                     localStorage.setItem(`flowforge_checklists_${userId}`, JSON.stringify(currentChecklists));
                 } catch (e) {}
             }
+            saved = true;
             updateChecklistView(taskId);
         }
     } catch (err) {
@@ -289,7 +291,7 @@ async function addChecklistItem(taskId) {
         if (nextBtn) nextBtn.disabled = false;
         if (nextInput) {
             nextInput.disabled = false;
-            nextInput.value = '';
+            nextInput.value = saved ? '' : text;
             nextInput.focus();
         }
     }
@@ -434,10 +436,7 @@ window.changeTaskStatusFromDetail = changeTaskStatusFromDetail;
 window.editTaskFromDetail = editTaskFromDetail;
 window.deleteTaskFromDetail = deleteTaskFromDetail;
 
-// 작업 상태 변경을 위한 낙관적 업데이트(Optimistic UI) 및 버전 카운터
-const taskStatusVersions = {};
-const taskPendingRequests = {};
-const taskOriginalStatus = {};
+// 같은 작업의 상태 저장은 한 번에 하나만 허용합니다.
 
 function syncTaskRelatedViews(task) {
     renderTasks();
@@ -455,64 +454,33 @@ function syncTaskRelatedViews(task) {
 
 async function changeTaskStatus(taskId, newStatus) {
     const task = currentTasks.find(t => t.id === taskId);
-    if (!task || task.status === newStatus) return;
-
-    // 작업별 버전 카운터 및 연속 요청 추적
-    if (!taskStatusVersions[taskId]) taskStatusVersions[taskId] = 0;
-    const reqVersion = ++taskStatusVersions[taskId];
-
-    if (!taskPendingRequests[taskId] || taskPendingRequests[taskId] <= 0) {
-        taskPendingRequests[taskId] = 0;
-        taskOriginalStatus[taskId] = task.status;
-    }
-    taskPendingRequests[taskId]++;
-
-    const targetStatus = newStatus;
-    task.status = targetStatus;
-
-    // 즉시 화면 반영 (전체 화면 로딩 없음)
-    syncTaskRelatedViews(task);
-
-    const user = typeof AppAPI !== 'undefined' ? AppAPI.getUser() : null;
-    if (!user) {
-        taskPendingRequests[taskId]--;
-        if (taskPendingRequests[taskId] <= 0) {
-            task.status = taskOriginalStatus[taskId];
-            delete taskOriginalStatus[taskId];
-            delete taskPendingRequests[taskId];
-            syncTaskRelatedViews(task);
-        }
-        UI.showToast('로그인이 필요합니다.', 'error');
+    if (!task || !['To Do', 'In Progress', 'Done'].includes(newStatus)) return;
+    const user = AppAPI.getUser();
+    if (!user) { UI.showToast('로그인이 필요합니다.', 'error'); return; }
+    const key = JSON.stringify([user.user_id, "task", taskId]);
+    if (pendingItemWrites.has(key)) {
+        syncTaskRelatedViews(task);
+        UI.showToast('이 작업의 상태를 저장 중입니다. 잠시 후 변경해주세요.', 'warning');
         return;
     }
-
+    if (task.status === newStatus) return;
+    pendingItemWrites.add(key);
+    const originalStatus = task.status;
+    const isCurrent = () => AppAPI.getUser()?.user_id === user.user_id && currentTasks.includes(task);
     try {
-        const res = await AppAPI.updateTaskStatus(
-            taskId,
-            targetStatus,
-            user.user_id
-        );
-        if (!res || !res.success) {
-            throw new Error((res && res.message) || '상태 변경에 실패했습니다.');
-        }
-        // 가장 최신 변경 요청인 경우에만 성공 토스트 표시
-        if (taskStatusVersions[taskId] === reqVersion) {
-            const statusLabels = { 'To Do': '해야 할 일', 'In Progress': '진행 중', 'Done': '완료됨' };
-            UI.showToast(`작업 상태가 변경되었습니다: ${statusLabels[targetStatus] || targetStatus}`);
-        }
+        task.status = newStatus;
+        syncTaskRelatedViews(task);
+        const res = await AppAPI.updateTaskStatus(taskId, newStatus, user.user_id);
+        if (!res?.success) throw new Error(res?.message || '상태 변경에 실패했습니다.');
+        if (isCurrent()) UI.showToast('작업 상태가 변경되었습니다.');
     } catch (err) {
-        // 가장 최신 변경 요청인 경우에만 롤백 실행 및 오류 안내
-        if (taskStatusVersions[taskId] === reqVersion) {
-            task.status = taskOriginalStatus[taskId];
+        task.status = originalStatus;
+        if (isCurrent()) {
             syncTaskRelatedViews(task);
             UI.showToast(err.message || '상태 변경에 실패했습니다.', 'error');
         }
     } finally {
-        taskPendingRequests[taskId]--;
-        if (taskPendingRequests[taskId] <= 0) {
-            delete taskPendingRequests[taskId];
-            delete taskOriginalStatus[taskId];
-        }
+        pendingItemWrites.delete(key);
     }
 }
 
@@ -854,9 +822,15 @@ function initTask() {
     }
 
     document.getElementById("form-task").onsubmit = async (e) => {
-        if (isTaskRequest) return;
-        isTaskRequest = true;
         e.preventDefault();
+        if (isTaskRequest) return;
+        if (!AppAPI.getUser()) return;
+        if (!document.getElementById("task-title").value.trim()) {
+            UI.showToast("제목을 입력해주세요.", "warning");
+            document.getElementById("task-title").focus();
+            return;
+        }
+        isTaskRequest = true;
         const submitBtn = document.getElementById("btn-submit-task");
         const form = e.target;
         const mode = form.dataset.mode;

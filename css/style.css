@@ -875,3 +875,13 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
     .calendar-day-card-bottom { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
     .calendar-day-card-bottom .badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+/* Keep keyboard navigation visible in both themes. */
+:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
+.sync-status { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .8rem; border: 1px solid var(--border-color); border-radius: 99px; background: var(--bg-surface); color: var(--text-muted); font: inherit; font-size: .8rem; cursor: pointer; }
+.sync-status[data-state="synced"] { color: var(--success-color); }
+.sync-status[data-state="cached"], .sync-status[data-state="error"] { color: var(--warning-color); }
+.sync-status:disabled { cursor: default; }

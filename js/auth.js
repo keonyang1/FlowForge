@@ -71,15 +71,6 @@ function initAuth() {
         dot.onclick = () => showHelpPage(index + 1);
     });
 
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            const modal = document.getElementById("help-modal");
-            if (modal && modal.classList.contains("show")) {
-                closeHelpModal();
-            }
-        }
-    });
-
     // 프로필 드롭다운 관리
     document.getElementById('btn-profile-trigger').onclick = (e) => { e.stopPropagation(); document.getElementById('profile-dropdown').classList.toggle('show'); };
     document.onclick = (e) => { if(!e.target.closest('.profile-wrapper')) document.getElementById('profile-dropdown').classList.remove('show'); };
@@ -87,6 +78,7 @@ function initAuth() {
     // 프로필 수정 모달 열기
     document.getElementById('btn-edit-profile').onclick = () => {
         const user = AppAPI.getUser();
+        if (!user) return;
         const preview = document.getElementById("profile-avatar-preview");
         const initial = document.getElementById("profile-avatar-initial");
         if(user.avatar_url){
@@ -183,7 +175,8 @@ function initAuth() {
     // 프로필 수정 폼 제출
     document.getElementById('form-profile').onsubmit = async (e) => {
         e.preventDefault();
-        const newNickname = document.getElementById('prof-nickname').value;
+        const newNickname = document.getElementById('prof-nickname').value.trim();
+        if (!newNickname) { UI.showToast('닉네임을 입력해주세요.', 'warning'); return; }
         const avatarInput = document.getElementById("profile-avatar-file");
         const avatarFile = avatarInput.files[0];
         const avatarFileError = getAvatarFileError(avatarFile);
@@ -194,6 +187,7 @@ function initAuth() {
         }
 
         const btn = document.getElementById('btn-submit-profile');
+        if (btn.disabled) return;
         const originalText = btn.textContent;
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 저장 중...';
 
@@ -214,30 +208,31 @@ function initAuth() {
                 if (!profileRes.success)
                     throw new Error(profileRes.message);
                 user.nickname = newNickname;
+                persistProfileUI(user);
                 profileSuccess = true;
             }
 
             // 2. 프로필 사진 업로드
             if (avatarFile) {
-                const base64 = await new Promise(resolve => {
+                const base64 = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => {
                         resolve(reader.result.split(",")[1]);
                     };
+                    reader.onerror = () => reject(new Error('이미지를 읽지 못했습니다. 다시 선택해주세요.'));
+                    reader.onabort = () => reject(new Error('이미지 읽기가 취소되었습니다.'));
                     reader.readAsDataURL(avatarFile);
                 });
                 const avatarRes = await AppAPI.uploadAvatar(user.user_id, base64);
                 if (!avatarRes.success) throw new Error(avatarRes.message);
                 user.avatar_url = avatarRes.avatar_url;
+                persistProfileUI(user);
                 profileSuccess = true;
             }
 
             // 변경사항 적용
             if (profileSuccess) {
-                localStorage.setItem("flowforge_session", JSON.stringify(user));
-                document.getElementById("header-nickname").textContent = user.nickname;
-                document.getElementById("dropdown-nickname").textContent = user.nickname;
-                updateAvatarUI(user);
+                persistProfileUI(user);
                 UI.showToast("프로필이 성공적으로 업데이트되었습니다.");
                 UI.closeModal("profile-modal");
 
@@ -253,9 +248,11 @@ function initAuth() {
 
     document.getElementById("form-password").onsubmit = async (e) => {
         e.preventDefault();
-        const currentPw = document.getElementById("pw-current").value.trim();
-        const newPw = document.getElementById("pw-new").value.trim();
-        const confirmPw = document.getElementById("pw-new-confirm").value.trim();
+        const button = document.getElementById("btn-submit-password");
+        if (button.disabled) return;
+        const currentPw = document.getElementById("pw-current").value;
+        const newPw = document.getElementById("pw-new").value;
+        const confirmPw = document.getElementById("pw-new-confirm").value;
 
         if (newPw !== confirmPw) {
             UI.showToast("새 비밀번호가 일치하지 않습니다.", "warning");
@@ -265,6 +262,7 @@ function initAuth() {
             UI.showToast("비밀번호 형식이 올바르지 않습니다.", "warning");
             return;
         }
+        UI.lockButton(button, "변경 중...");
         UI.setGlobalLoading(true);
         try {
             const user = AppAPI.getUser();
@@ -277,6 +275,7 @@ function initAuth() {
         } catch (err) {
             UI.showToast(err.message, "error");
         } finally {
+            UI.unlockButton(button);
             UI.setGlobalLoading(false);
         }
     };
@@ -433,6 +432,16 @@ function initAuth() {
             btn.textContent = "계정 생성";
         }
     };
+}
+
+function persistProfileUI(user) {
+    // Preserve already-saved nickname changes even when a subsequent avatar upload fails.
+    if (AppAPI.getUser()?.user_id !== user.user_id) return;
+    localStorage.setItem('flowforge_session', JSON.stringify(user));
+    document.getElementById('header-nickname').textContent = user.nickname;
+    document.getElementById('dropdown-nickname').textContent = user.nickname;
+    document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
+    updateAvatarUI(user);
 }
 
 function updateAvatarUI(user){

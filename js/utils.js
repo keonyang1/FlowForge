@@ -25,13 +25,17 @@ function normalizeDateStr(dateStr) {
     }
     // 2. 순수 날짜 문자열 (예: 2026-09-15, 2026.09.15, 2026/09/15)
     // new Date('YYYY-MM-DD')의 UTC 자정 파싱에 의한 시차 오차를 방지하기 위해 정규식으로 직접 추출
-    const match = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    const match = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
     if (match) {
         const yy = match[1];
         const mm = String(match[2]).padStart(2, '0');
         const dd = String(match[3]).padStart(2, '0');
+        const check = new Date(0);
+        check.setFullYear(Number(yy), Number(mm) - 1, Number(dd));
+        if (check.getFullYear() !== Number(yy) || check.getMonth() !== Number(mm) - 1 || check.getDate() !== Number(dd)) return "";
         return `${yy}-${mm}-${dd}`;
     }
+    if (/^\d{4}[-/.]/.test(str)) return "";
     // 3. 기타 날짜 포맷 폴백
     const dt = new Date(str);
     if (!isNaN(dt.getTime())) {
@@ -91,7 +95,8 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-}// Encode an untrusted value as a JavaScript string literal inside an HTML attribute.
+}
+// Encode an untrusted value as a JavaScript string literal inside an HTML attribute.
 function escapeInlineJsArg(value) {
     const jsLiteral = JSON.stringify(String(value))
         .replace(/\u2028/g, '\\u2028')
@@ -103,3 +108,10 @@ function normalizePriorityClass(value) {
     const priority = String(value || 'medium').toLowerCase();
     return ['high', 'medium', 'low'].includes(priority) ? priority : 'medium';
 }
+
+function normalizeBoolean(value) {
+    return value === true || value === 1 || (typeof value === "string" && ["true", "1"].includes(value.trim().toLowerCase()));
+}
+
+// Serialize quick status/date changes for the same server record.
+const pendingItemWrites = new Set();

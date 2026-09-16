@@ -1,5 +1,6 @@
 // js/app.js
 
+let appLoadVersion = 0;
 let currentProjects = [];
 let currentTasks = [];
 let currentChecklists = [];
@@ -7,6 +8,7 @@ let currentDependencies = [];
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    initAccessibility();
     initTheme();
     initDragAndDrop();
     initAuth();
@@ -15,19 +17,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof initCalendar === 'function') initCalendar();
     initMobileMenu();
 
-    document.getElementById("global-search").addEventListener("input", (e) => {
-        const activeSection = document.querySelector(".page-section.active");
-        if (activeSection && activeSection.id === "tasks-page") {
-            renderTasks();
-        } else {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll(".search-target").forEach(card => {
-                const text = Array.from(card.querySelectorAll(".search-text")).map(el => el.textContent.toLowerCase()).join(" ");
-                card.style.display = text.includes(query) ? "" : "none";
-            });
-        }
-    });
+    document.getElementById("global-search").addEventListener("input", applyGlobalSearch);
 });
+
+function applyGlobalSearch() {
+    const section = document.querySelector("main .page-section.active");
+    if (!section) return;
+    if (section.id === 'tasks-page') { renderTasks(); return; }
+    const query = (document.getElementById('global-search')?.value || '').trim().toLowerCase();
+    section.querySelectorAll('.search-target').forEach(card => {
+        const text = [...card.querySelectorAll('.search-text')].map(el => el.textContent.toLowerCase()).join(' ');
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+}
 
 function initMobileMenu() {
     const mobileMenuBtn = document.getElementById("btn-mobile-menu");
@@ -56,6 +58,9 @@ function initMobileMenu() {
 
 // 앱 초기화 유틸
 function resetAppUI() {
+    appLoadVersion++;
+    UI.setSyncState("idle");
+    document.querySelectorAll(".modal-overlay.show").forEach(modal => UI.closeModal(modal.id));
     currentProjects = [];
     currentTasks = [];
     currentChecklists = [];
@@ -127,7 +132,10 @@ function resetAppUI() {
 
 async function loadAppData() {
     const user = AppAPI.getUser();
-    if (!user) return;
+    if (!user) { UI.setSyncState("idle"); return false; }
+    const loadVersion = ++appLoadVersion;
+    const isCurrent = () => loadVersion === appLoadVersion && AppAPI.getUser()?.user_id === user.user_id;
+    UI.setSyncState("loading");
     UI.setGlobalLoading(true);
     try {
         const [pRes, tRes, cRes, dRes] = await Promise.all([
@@ -137,6 +145,7 @@ async function loadAppData() {
             AppAPI.getDependencies(user.user_id)
         ]);
 
+        if (!isCurrent()) return;
         if (!pRes.success) {
             throw new Error(pRes.message || "프로젝트 데이터를 불러오지 못했습니다.");
         }
@@ -144,17 +153,21 @@ async function loadAppData() {
         if (!tRes.success) {
             throw new Error(tRes.message || "작업 데이터를 불러오지 못했습니다.");
         }
-        currentProjects = pRes.projects;
-        currentTasks = tRes.tasks;
+        if (!Array.isArray(pRes.projects) || !Array.isArray(tRes.tasks)) {
+            throw new Error("서버 데이터 형식이 올바르지 않습니다.");
+        }
+        currentProjects = pRes.projects.filter(item => item && item.id);
+        currentTasks = tRes.tasks.filter(item => item && item.id);
         const rawChecklists = (cRes && cRes.success && Array.isArray(cRes.checklists)) ? cRes.checklists : [];
         const seenChecklistIds = new Set();
         currentChecklists = [];
         for (let i = rawChecklists.length - 1; i >= 0; i--) {
             const item = rawChecklists[i];
+            if (!item) continue;
             const id = String(item.id || '').trim();
             if (!id || seenChecklistIds.has(id)) continue;
             seenChecklistIds.add(id);
-            currentChecklists.push(item);
+            currentChecklists.push({ ...item, is_completed: normalizeBoolean(item.is_completed) });
         }
         currentChecklists.reverse();
 
@@ -179,7 +192,16 @@ async function loadAppData() {
                 UI.closeModal('task-detail-modal');
             }
         }
-    } catch (e) {UI.showToast(e.message, "error"); }
+        applyGlobalSearch();
+        UI.setSyncState(cRes?.fromCache || dRes?.fromCache ? 'cached' : 'synced');
+        return true;
+    } catch (e) {
+        if (isCurrent()) {
+            UI.setSyncState('error');
+            UI.showToast(e.message, "error");
+        }
+        return false;
+    }
     finally {UI.setGlobalLoading(false); }
 }
 
@@ -199,7 +221,7 @@ function getTaskChecklist(taskId) {
 function getTaskChecklistStats(taskId) {
     const items = getTaskChecklist(taskId);
     const total = items.length;
-    const completed = items.filter(item => Boolean(item.is_completed)).length;
+    const completed = items.filter(item => normalizeBoolean(item.is_completed)).length;
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, percent };
 }

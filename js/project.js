@@ -134,10 +134,12 @@ function deleteProject(projId) {
                 if (typeof currentChecklists !== 'undefined' && typeof currentTasks !== 'undefined') {
                     const taskIdsToRemove = new Set(currentTasks.filter(t => t.project_id === projId).map(t => t.id));
                     currentChecklists = currentChecklists.filter(c => !taskIdsToRemove.has(c.task_id));
+                    currentDependencies = currentDependencies.filter(d => !taskIdsToRemove.has(d.task_id) && !taskIdsToRemove.has(d.depends_on_task_id));
                     const user = AppAPI.getUser();
                     if (user && user.user_id) {
                         try {
                             localStorage.setItem("flowforge_checklists_" + user.user_id, JSON.stringify(currentChecklists));
+                            localStorage.setItem("flowforge_dependencies_" + user.user_id, JSON.stringify(currentDependencies));
                         } catch (e) {}
                     }
                 }
@@ -161,9 +163,15 @@ function deleteProject(projId) {
 
 function initProject() {
     document.getElementById("form-project").onsubmit = async (e) => {
-        if (isProjectRequest) return;
-        isProjectRequest = true;
         e.preventDefault();
+        if (isProjectRequest) return;
+        if (!AppAPI.getUser()) return;
+        if (!document.getElementById("proj-title").value.trim()) {
+            UI.showToast("제목을 입력해주세요.", "warning");
+            document.getElementById("proj-title").focus();
+            return;
+        }
+        isProjectRequest = true;
         const submitBtn = document.getElementById("btn-submit-proj");
         const form = e.target;
         const mode = form.dataset.mode;
