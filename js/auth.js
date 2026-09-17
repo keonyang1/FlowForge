@@ -66,11 +66,6 @@ function initAuth() {
         };
     }
 
-    const helpDots = document.querySelectorAll("#help-indicator span");
-    helpDots.forEach((dot, index) => {
-        dot.onclick = () => showHelpPage(index + 1);
-    });
-
     // 프로필 드롭다운 관리
     document.getElementById('btn-profile-trigger').onclick = (e) => { e.stopPropagation(); document.getElementById('profile-dropdown').classList.toggle('show'); };
     document.onclick = (e) => { if(!e.target.closest('.profile-wrapper')) document.getElementById('profile-dropdown').classList.remove('show'); };
@@ -1067,7 +1062,7 @@ function showHelpPage(page) {
     });
 
     // 3. Update indicators
-    const dots = document.querySelectorAll("#help-indicator span");
+    const dots = document.querySelectorAll("#help-indicator button");
     dots.forEach((d, index) => {
         d.classList.toggle("active", index === page - 1);
     });

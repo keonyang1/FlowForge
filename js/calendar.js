@@ -283,9 +283,8 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
         itemsHtml += `
             <div class="calendar-item calendar-item-project${doneClass}"
                  draggable="true"
-                 ondragstart="handleCalendarDragStart(event, 'project', ${escapeInlineJsArg(proj.id)}, ${escapeInlineJsArg(dateStr)})"
-                 ondragend="handleCalendarDragEnd(event)"
-                 onclick="handleCalendarItemClick(event, 'project', ${escapeInlineJsArg(proj.id)})"
+                 data-click-action="calendar-item" data-dragstart-action="calendar-item" data-dragend-action="calendar-item"
+                 data-item-type="project" data-record-id="${escapeDataValue(proj.id)}" data-date="${escapeHtml(dateStr)}"
                  title="[프로젝트] ${escapeHtml(proj.title)} (${escapeHtml(proj.status)})">
                 <i class="fas fa-folder"></i>
                 <span class="calendar-item-text">${escapeHtml(proj.title)}</span>
@@ -308,9 +307,8 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
         itemsHtml += `
             <div class="calendar-item calendar-item-task ${prioClass}${imminentClass}${doneClass}"
                  draggable="true"
-                 ondragstart="handleCalendarDragStart(event, 'task', ${escapeInlineJsArg(task.id)}, ${escapeInlineJsArg(dateStr)})"
-                 ondragend="handleCalendarDragEnd(event)"
-                 onclick="handleCalendarItemClick(event, 'task', ${escapeInlineJsArg(task.id)})"
+                 data-click-action="calendar-item" data-dragstart-action="calendar-item" data-dragend-action="calendar-item"
+                 data-item-type="task" data-record-id="${escapeDataValue(task.id)}" data-date="${escapeHtml(dateStr)}"
                  title="[작업] ${escapeHtml(task.title)} (중요도: ${escapeHtml(task.priority || 'Medium')}, 상태: ${escapeHtml(task.status)})">
                 <span class="prio-indicator prio-${prio}"></span>
                 <i class="fas ${icon}"></i>
@@ -323,7 +321,7 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
     if (totalItems > maxVisible) {
         const moreCount = totalItems - maxVisible;
         itemsHtml += `
-            <button type="button" class="calendar-more-btn" onclick="event.stopPropagation(); selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)" title="${moreCount}개 일정 더보기 (일간 뷰로 이동)">
+            <button type="button" class="calendar-more-btn" data-click-action="calendar-more" data-date="${escapeHtml(dateStr)}" title="${moreCount}개 일정 더보기 (일간 뷰로 이동)">
                 +${moreCount}개 더보기
             </button>`;
     }
@@ -333,10 +331,8 @@ function createCalendarCellHtml(dateStr, dayNum, isOtherMonth, isToday, dayOfWee
     return `
         <div class="${dayClasses.join(' ')}"
              data-date="${escapeHtml(dateStr)}"
-             ondragover="handleCalendarDragOver(event)"
-             ondragleave="handleCalendarDragLeave(event)"
-             ondrop="handleCalendarDrop(event)"
-             onclick="selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)">
+             data-click-action="calendar-select-date" data-dragover-action="calendar-drop-zone"
+             data-dragleave-action="calendar-drop-zone" data-drop-action="calendar-drop-zone">
             <div class="calendar-day-header">
                 <span class="calendar-day-num">${dayNum}</span>
                 ${todayBadge}
@@ -382,9 +378,8 @@ function renderWeekView(startOfWeek) {
             itemsHtml += `
                 <div class="calendar-item calendar-item-project${doneClass}"
                      draggable="true"
-                     ondragstart="handleCalendarDragStart(event, 'project', ${escapeInlineJsArg(proj.id)}, ${escapeInlineJsArg(dateStr)})"
-                     ondragend="handleCalendarDragEnd(event)"
-                     onclick="handleCalendarItemClick(event, 'project', ${escapeInlineJsArg(proj.id)})"
+                     data-click-action="calendar-item" data-dragstart-action="calendar-item" data-dragend-action="calendar-item"
+                     data-item-type="project" data-record-id="${escapeDataValue(proj.id)}" data-date="${escapeHtml(dateStr)}"
                      title="[프로젝트] ${escapeHtml(proj.title)}">
                     <i class="fas fa-folder"></i>
                     <span class="calendar-item-text">${escapeHtml(proj.title)}</span>
@@ -405,9 +400,8 @@ function renderWeekView(startOfWeek) {
             itemsHtml += `
                 <div class="calendar-item calendar-item-task ${prioClass}${imminentClass}${doneClass}"
                      draggable="true"
-                     ondragstart="handleCalendarDragStart(event, 'task', ${escapeInlineJsArg(task.id)}, ${escapeInlineJsArg(dateStr)})"
-                     ondragend="handleCalendarDragEnd(event)"
-                     onclick="handleCalendarItemClick(event, 'task', ${escapeInlineJsArg(task.id)})"
+                     data-click-action="calendar-item" data-dragstart-action="calendar-item" data-dragend-action="calendar-item"
+                     data-item-type="task" data-record-id="${escapeDataValue(task.id)}" data-date="${escapeHtml(dateStr)}"
                      title="[작업] ${escapeHtml(task.title)} (중요도: ${escapeHtml(task.priority || 'Medium')})">
                     <span class="prio-indicator prio-${prio}"></span>
                     <i class="fas ${icon}"></i>
@@ -420,10 +414,8 @@ function renderWeekView(startOfWeek) {
         gridHtml += `
             <div class="${colClasses.join(' ')}"
                  data-date="${escapeHtml(dateStr)}"
-                 ondragover="handleCalendarDragOver(event)"
-                 ondragleave="handleCalendarDragLeave(event)"
-                 ondrop="handleCalendarDrop(event)">
-                <div class="calendar-week-col-header" onclick="selectCalendarDate(${escapeInlineJsArg(dateStr)}, true)" title="클릭하여 일간 뷰로 이동">
+                 data-dragover-action="calendar-drop-zone" data-dragleave-action="calendar-drop-zone" data-drop-action="calendar-drop-zone">
+                <div class="calendar-week-col-header" data-click-action="calendar-select-date" data-date="${escapeHtml(dateStr)}" title="클릭하여 일간 뷰로 이동">
                     <span class="calendar-week-day-name${nameColorClass}">${dayNames[i]}</span>
                     <span class="calendar-week-day-num">${dayNum}</span>
                     ${todayBadge}
@@ -450,15 +442,13 @@ function renderDayView() {
     let html = `
         <div class="calendar-day-view"
              data-date="${escapeHtml(dateStr)}"
-             ondragover="handleCalendarDragOver(event)"
-             ondragleave="handleCalendarDragLeave(event)"
-             ondrop="handleCalendarDrop(event)">
+             data-dragover-action="calendar-drop-zone" data-dragleave-action="calendar-drop-zone" data-drop-action="calendar-drop-zone">
             <div class="calendar-day-view-header">
                 <div class="calendar-day-view-date">
                     <i class="far fa-calendar-check" style="color: var(--accent-color);"></i>
                     <span>${dateStr} 일정 집중 보기</span>
                 </div>
-                <button type="button" class="btn-secondary" onclick="setCalendarView('month')" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                <button type="button" class="btn-secondary" data-click-action="calendar-set-view" data-view="month" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
                     <i class="fas fa-calendar-days"></i> 월간 뷰로 돌아가기
                 </button>
             </div>`;
@@ -489,7 +479,7 @@ function renderDayView() {
                 const statusBadge = p.status === '완료됨' ? 'bg-success' : (p.status === '진행 중' ? 'bg-warning' : 'bg-default');
                 const doneClass = p.status === '완료됨' ? ' is-done' : '';
                 html += `
-                    <div class="calendar-day-card${doneClass}" onclick="openProjectDetail(${escapeInlineJsArg(p.id)})">
+                    <div class="calendar-day-card${doneClass}" data-click-action="calendar-day-project" data-record-id="${escapeDataValue(p.id)}">
                         <div class="calendar-day-card-top">
                             <span class="calendar-day-card-title"><i class="fas fa-folder" style="color: var(--accent-color); margin-right: 0.35rem;"></i> ${escapeHtml(p.title)}</span>
                             <span class="badge ${statusBadge}">${escapeHtml(p.status)}</span>
@@ -524,7 +514,7 @@ function renderDayView() {
                 const priorityClass = normalizePriorityClass(t.priority);
 
                 html += `
-                    <div class="calendar-day-card${doneClass}" onclick="openTaskDetail(${escapeInlineJsArg(t.id)})">
+                    <div class="calendar-day-card${doneClass}" data-click-action="calendar-day-task" data-task-id="${escapeDataValue(t.id)}">
                         <div class="calendar-day-card-top">
                             <span class="calendar-day-card-title">
                                 <i class="fas ${isDone ? 'fa-check-circle text-success' : 'fa-circle-dot'}" style="margin-right: 0.35rem;"></i>
@@ -567,11 +557,13 @@ function handleCalendarDragStart(e, type, id, dateStr) {
         // fallback
     }
     e.dataTransfer.effectAllowed = 'move';
-    if (e.currentTarget) e.currentTarget.classList.add('dragging');
+    const item = e.target?.closest?.('[data-dragstart-action="calendar-item"]') || e.currentTarget;
+    if (item) item.classList.add('dragging');
 }
 
 function handleCalendarDragEnd(e) {
-    if (e.currentTarget) e.currentTarget.classList.remove('dragging');
+    const item = e.target?.closest?.('[data-dragend-action="calendar-item"]') || e.currentTarget;
+    if (item) item.classList.remove('dragging');
     setTimeout(() => {
         isDraggingCalendarItem = false;
         draggedCalendarItem = null;
@@ -592,21 +584,21 @@ function handleCalendarDragOver(e) {
     e.preventDefault();
     if (!isDraggingCalendarItem && !draggedCalendarItem) return;
     e.dataTransfer.dropEffect = 'move';
-    const cell = e.currentTarget;
+    const cell = e.target?.closest?.('[data-dragover-action="calendar-drop-zone"]') || e.currentTarget;
     if (cell && !cell.classList.contains('calendar-drop-target')) {
         cell.classList.add('calendar-drop-target');
     }
 }
 
 function handleCalendarDragLeave(e) {
-    const cell = e.currentTarget;
+    const cell = e.target?.closest?.('[data-dragleave-action="calendar-drop-zone"]') || e.currentTarget;
     if (cell) cell.classList.remove('calendar-drop-target');
 }
 
 async function handleCalendarDrop(e) {
     e.preventDefault();
     e.stopPropagation();
-    const cell = e.currentTarget;
+    const cell = e.target?.closest?.('[data-drop-action="calendar-drop-zone"]') || e.currentTarget;
     if (cell) cell.classList.remove('calendar-drop-target');
 
     let itemInfo = draggedCalendarItem;

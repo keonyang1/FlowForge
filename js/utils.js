@@ -96,12 +96,19 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
-// Encode an untrusted value as a JavaScript string literal inside an HTML attribute.
-function escapeInlineJsArg(value) {
-    const jsLiteral = JSON.stringify(String(value))
-        .replace(/\u2028/g, '\\u2028')
-        .replace(/\u2029/g, '\\u2029');
-    return escapeHtml(jsLiteral);
+// Keep the original JSON type while safely storing a value in a data-* attribute.
+function escapeDataValue(value) {
+    return escapeHtml(JSON.stringify(value));
+}
+
+function readDataValue(element, key) {
+    const rawValue = element?.dataset?.[key];
+    if (rawValue === undefined) return undefined;
+    try {
+        return JSON.parse(rawValue);
+    } catch (_) {
+        return rawValue;
+    }
 }
 
 function normalizePriorityClass(value) {

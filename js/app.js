@@ -9,6 +9,7 @@ let currentDependencies = [];
 document.addEventListener("DOMContentLoaded", () => {
 
     initAccessibility();
+    initAppActions();
     initTheme();
     initDragAndDrop();
     initAuth();

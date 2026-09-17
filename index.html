@@ -30,7 +30,7 @@
                         <label>비밀번호</label>
                         <div class="pw-input-wrapper">
                             <input type="password" id="login-pw" autocomplete="current-password" class="form-control" required style="padding-right: 2.5rem;">
-                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('login-pw', this)"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="login-pw"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
                     <button type="submit" class="btn-primary" id="btn-login" style="width: 100%; justify-content: center; padding: 0.75rem;">로그인</button>
@@ -48,14 +48,14 @@
                         <label>비밀번호 (6자 이상)</label>
                         <div class="pw-input-wrapper">
                             <input type="password" id="reg-pw" autocomplete="new-password" class="form-control" required style="padding-right: 2.5rem;">
-                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('reg-pw', this)"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="reg-pw"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>비밀번호 확인</label>
                         <div class="pw-input-wrapper">
                             <input type="password" id="reg-pw-confirm" autocomplete="new-password" class="form-control" required style="padding-right: 2.5rem;">
-                            <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('reg-pw-confirm', this)"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="reg-pw-confirm"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
                     <button type="submit" class="btn-primary" id="btn-register" style="width: 100%; justify-content: center; padding: 0.75rem;">계정 생성</button>
@@ -81,11 +81,11 @@
     </div>
 
     <!-- 3. 프로젝트 생성/수정 공통 모달 -->
-    <div id="project-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'project-modal')">
+    <div id="project-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="project-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="project-modal-title">새 프로젝트 생성</h3>
-                <button class="modal-close" onclick="UI.closeModal('project-modal')"><i class="fas fa-times"></i></button>
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="project-modal"><i class="fas fa-times"></i></button>
             </div>
             <form id="form-project" data-mode="create" data-id="">
                 <div class="form-group">
@@ -113,7 +113,7 @@
                     <div class="form-group" style="flex: 1;"><label>마감 기한</label><input type="date" id="proj-date" class="form-control" required></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('project-modal')">취소</button>
+                    <button type="button" class="btn-secondary" data-click-action="modal-close" data-modal-id="project-modal">취소</button>
                     <button type="submit" class="btn-primary" id="btn-submit-proj">생성하기</button>
                 </div>
             </form>
@@ -121,11 +121,11 @@
     </div>
 
     <!-- 4. 작업 생성/수정 공통 모달 -->
-    <div id="task-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'task-modal')">
+    <div id="task-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="task-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="task-modal-title">새 작업 추가</h3>
-                <button class="modal-close" onclick="UI.closeModal('task-modal')"><i class="fas fa-times"></i></button>
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="task-modal"><i class="fas fa-times"></i></button>
             </div>
             <form id="form-task" data-mode="create" data-id="">
                 <div class="form-group"><label>작업 내용</label><input type="text" id="task-title" class="form-control" required autocomplete="off"></div>
@@ -147,7 +147,7 @@
                     <div class="form-group" style="flex: 1;"><label>마감일</label><input type="date" id="task-date" class="form-control" required></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('task-modal')">취소</button>
+                    <button type="button" class="btn-secondary" data-click-action="modal-close" data-modal-id="task-modal">취소</button>
                     <button type="submit" class="btn-primary" id="btn-submit-task">추가</button>
                 </div>
             </form>
@@ -155,11 +155,11 @@
     </div>
 
     <!-- 4-1. 작업 상세 보기 모달 -->
-    <div id="task-detail-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'task-detail-modal')">
+    <div id="task-detail-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="task-detail-modal">
         <div class="modal-content task-detail-content" style="max-width: 520px;">
             <div class="modal-header">
                 <h3 id="task-detail-modal-title">작업 상세 정보</h3>
-                <button class="modal-close" onclick="UI.closeModal('task-detail-modal')">
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="task-detail-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -173,35 +173,35 @@
     </div>
 
     <!-- 4-2. 선행 작업 추가 모달 -->
-    <div id="task-dependency-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'task-dependency-modal')">
+    <div id="task-dependency-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="task-dependency-modal">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
                 <h3 id="task-dependency-modal-title"><i class="fas fa-link" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 선행 작업 추가</h3>
-                <button class="modal-close" onclick="closeAddDependencyModal()"><i class="fas fa-times"></i></button>
+                <button class="modal-close" data-click-action="dependency-modal-close"><i class="fas fa-times"></i></button>
             </div>
             <div style="margin-bottom: 1rem;">
                 <p id="task-dependency-modal-subtitle" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">현재 작업이 진행되기 전 먼저 완료되어야 할 작업을 선택하세요.</p>
                 <div class="search-container" style="width: 100%;">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="dep-search-input" placeholder="작업 이름 또는 프로젝트명 검색..." oninput="onDependencySearchInput(this.value)">
+                    <input type="text" id="dep-search-input" placeholder="작업 이름 또는 프로젝트명 검색..." data-input-action="dependency-search">
                 </div>
             </div>
             <div id="dep-candidate-list" class="task-dep-candidate-list">
                 <!-- 동적으로 렌더링 -->
             </div>
             <div class="modal-footer" style="margin-top: 1.25rem;">
-                <button type="button" class="btn-secondary" onclick="closeAddDependencyModal()">취소</button>
-                <button type="button" class="btn-primary" id="btn-submit-dependency" onclick="submitAddDependency()" disabled><i class="fas fa-plus"></i> 선행 작업으로 추가</button>
+                <button type="button" class="btn-secondary" data-click-action="dependency-modal-close">취소</button>
+                <button type="button" class="btn-primary" id="btn-submit-dependency" data-click-action="dependency-submit" disabled><i class="fas fa-plus"></i> 선행 작업으로 추가</button>
             </div>
         </div>
     </div>
 
     <!-- 4-1. 캘린더 날짜별 일정 상세 모달 -->
-    <div id="calendar-day-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'calendar-day-modal')">
+    <div id="calendar-day-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="calendar-day-modal">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
                 <h3 id="calendar-day-modal-title" style="font-size: 1.15rem; font-weight: 600;">일정 상세</h3>
-                <button class="modal-close" onclick="UI.closeModal('calendar-day-modal')">
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="calendar-day-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -209,17 +209,17 @@
                 <!-- 동적으로 렌더링 -->
             </div>
             <div class="modal-footer" style="justify-content: flex-end;">
-                <button type="button" class="btn-primary" onclick="UI.closeModal('calendar-day-modal')">닫기</button>
+                <button type="button" class="btn-primary" data-click-action="modal-close" data-modal-id="calendar-day-modal">닫기</button>
             </div>
         </div>
     </div>
 
     <!-- 5. 프로필 수정 모달 -->
-    <div id="profile-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'profile-modal')">
+    <div id="profile-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="profile-modal">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
                 <h3>프로필 수정</h3>
-                <button class="modal-close" onclick="UI.closeModal('profile-modal')">
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="profile-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -241,7 +241,7 @@
                     <input type="text" id="prof-nickname" class="form-control" maxlength="20" required>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('profile-modal')">취소</button>
+                    <button type="button" class="btn-secondary" data-click-action="modal-close" data-modal-id="profile-modal">취소</button>
                     <button type="submit" class="btn-primary" id="btn-submit-profile">저장</button>
                 </div>
             </form>
@@ -254,11 +254,11 @@
     </div>
 
     <!-- 6. 비밀번호 변경 -->
-    <div id="password-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'password-modal')">
+    <div id="password-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="password-modal">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
                 <h3>비밀번호 변경</h3>
-                <button class="modal-close" onclick="UI.closeModal('password-modal')">
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="password-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -267,7 +267,7 @@
                     <label>현재 비밀번호</label>
                     <div class="pw-input-wrapper">
                         <input type="password" id="pw-current" class="form-control" required style="padding-right:2.5rem;">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('pw-current',this)">
+                        <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="pw-current">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -276,7 +276,7 @@
                     <label>새 비밀번호</label>
                     <div class="pw-input-wrapper">
                         <input type="password" id="pw-new" class="form-control" required style="padding-right:2.5rem;">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('pw-new',this)">
+                        <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="pw-new">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -285,13 +285,13 @@
                     <label>새 비밀번호 확인</label>
                     <div class="pw-input-wrapper">
                         <input type="password" id="pw-new-confirm" class="form-control" required style="padding-right:2.5rem;">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('pw-new-confirm',this)">
+                        <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="pw-new-confirm">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('password-modal')">취소</button>
+                    <button type="button" class="btn-secondary" data-click-action="modal-close" data-modal-id="password-modal">취소</button>
                     <button type="submit" class="btn-primary" id="btn-submit-password">변경</button>
                 </div>
             </form>
@@ -299,11 +299,11 @@
     </div>
 
     <!-- 7. 회원 탈퇴 -->
-    <div id="delete-account-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event,'delete-account-modal')">
+    <div id="delete-account-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="delete-account-modal">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
                 <h3>회원 탈퇴</h3>
-                <button class="modal-close" onclick="UI.closeModal('delete-account-modal')">
+                <button class="modal-close" data-click-action="modal-close" data-modal-id="delete-account-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -313,13 +313,13 @@
                     <label>현재 비밀번호</label>
                     <div class="pw-input-wrapper">
                         <input type="password" id="delete-current-password" class="form-control" required style="padding-right:2.5rem;">
-                        <button type="button" class="pw-toggle-btn" onclick="UI.togglePasswordVisibility('delete-current-password',this)">
+                        <button type="button" class="pw-toggle-btn" data-click-action="toggle-password" data-input-id="delete-current-password">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="UI.closeModal('delete-account-modal')">취소</button>
+                    <button type="button" class="btn-secondary" data-click-action="modal-close" data-modal-id="delete-account-modal">취소</button>
                     <button type="submit" class="btn-primary" id="btn-submit-delete-account" style="background:var(--danger-color);">회원 탈퇴</button>
                 </div>
             </form>
@@ -327,7 +327,7 @@
     </div>
 
     <!-- 8. 도움말 모달 -->
-    <div id="help-modal" class="modal-overlay" onclick="UI.handleOutsideClick(event, 'help-modal')">
+    <div id="help-modal" class="modal-overlay" data-click-action="modal-backdrop" data-modal-id="help-modal">
         <div class="modal-content help-modal">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -335,8 +335,8 @@
                     <span id="help-step-badge" class="badge bg-default" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">1 / 10</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <button type="button" class="btn-help-skip" id="help-skip" onclick="closeHelpModal()">건너뛰기</button>
-                    <button class="modal-close" onclick="closeHelpModal()"><i class="fas fa-times"></i></button>
+                    <button type="button" class="btn-help-skip" id="help-skip">건너뛰기</button>
+                    <button class="modal-close" data-click-action="modal-close" data-modal-id="help-modal"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="help-body">
@@ -630,16 +630,16 @@
             <div class="help-footer">
                 <button type="button" class="btn-secondary" id="help-prev"><i class="fas fa-chevron-left"></i> 이전</button>
                 <div id="help-indicator" class="help-indicator">
-                    <span class="active" onclick="showHelpPage(1)"></span>
-                    <span onclick="showHelpPage(2)"></span>
-                    <span onclick="showHelpPage(3)"></span>
-                    <span onclick="showHelpPage(4)"></span>
-                    <span onclick="showHelpPage(5)"></span>
-                    <span onclick="showHelpPage(6)"></span>
-                    <span onclick="showHelpPage(7)"></span>
-                    <span onclick="showHelpPage(8)"></span>
-                    <span onclick="showHelpPage(9)"></span>
-                    <span onclick="showHelpPage(10)"></span>
+                    <button type="button" class="active" data-click-action="help-page" data-page="1" aria-label="도움말 1페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="2" aria-label="도움말 2페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="3" aria-label="도움말 3페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="4" aria-label="도움말 4페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="5" aria-label="도움말 5페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="6" aria-label="도움말 6페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="7" aria-label="도움말 7페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="8" aria-label="도움말 8페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="9" aria-label="도움말 9페이지"></button>
+                    <button type="button" data-click-action="help-page" data-page="10" aria-label="도움말 10페이지"></button>
                 </div>
                 <button type="button" class="btn-primary" id="help-next">다음 <i class="fas fa-chevron-right"></i></button>
             </div>
@@ -653,11 +653,11 @@
     <aside class="sidebar">
         <div class="brand"><i class="fas fa-layer-group"></i> FlowForge</div>
         <ul class="nav-menu">
-            <li><a class="nav-item active" onclick="UI.switchPage('dashboard')"><i class="fas fa-home"></i> 대시보드</a></li>
-            <li><a class="nav-item" onclick="UI.switchPage('projects')"><i class="fas fa-folder"></i> 프로젝트</a></li>
-            <li><a class="nav-item" onclick="UI.switchPage('tasks')"><i class="fas fa-tasks"></i> 작업 보드</a></li>
-            <li><a class="nav-item" onclick="UI.switchPage('calendar')"><i class="fas fa-calendar-alt"></i> 캘린더</a></li>
-            <li><a class="nav-item" onclick="UI.switchPage('analytics')"><i class="fas fa-chart-pie"></i> 통계 리포트</a></li>
+            <li><button type="button" class="nav-item active" data-click-action="navigate-page" data-page="dashboard"><i class="fas fa-home"></i> 대시보드</button></li>
+            <li><button type="button" class="nav-item" data-click-action="navigate-page" data-page="projects"><i class="fas fa-folder"></i> 프로젝트</button></li>
+            <li><button type="button" class="nav-item" data-click-action="navigate-page" data-page="tasks"><i class="fas fa-tasks"></i> 작업 보드</button></li>
+            <li><button type="button" class="nav-item" data-click-action="navigate-page" data-page="calendar"><i class="fas fa-calendar-alt"></i> 캘린더</button></li>
+            <li><button type="button" class="nav-item" data-click-action="navigate-page" data-page="analytics"><i class="fas fa-chart-pie"></i> 통계 리포트</button></li>
         </ul>
     </aside>
 
@@ -671,7 +671,7 @@
             </div>
             
             <div class="header-actions">
-                <button type="button" id="sync-status" class="sync-status" data-state="idle" aria-label="데이터 다시 불러오기" title="데이터 다시 불러오기" onclick="loadAppData()">
+                <button type="button" id="sync-status" class="sync-status" data-state="idle" aria-label="데이터 다시 불러오기" title="데이터 다시 불러오기" data-click-action="reload-data">
                     <i class="fas fa-cloud" aria-hidden="true"></i><span id="sync-status-text" role="status" aria-live="polite">연결 대기</span>
                 </button>
                 <button class="icon-btn" id="btn-theme-toggle" title="테마 변경"><i class="fas fa-moon"></i></button>
@@ -717,8 +717,8 @@
                         <p>진행 중인 업무와 마감 일정을 한눈에 파악하세요.</p>
                     </div>
                     <div class="dashboard-header-actions">
-                        <button class="btn-secondary" onclick="UI.openProjectModal('create')"><i class="fas fa-folder-plus"></i> 새 프로젝트</button>
-                        <button class="btn-primary" onclick="UI.openTaskModal('create')"><i class="fas fa-plus"></i> 새 작업 추가</button>
+                        <button class="btn-secondary" data-click-action="project-create"><i class="fas fa-folder-plus"></i> 새 프로젝트</button>
+                        <button class="btn-primary" data-click-action="task-create"><i class="fas fa-plus"></i> 새 작업 추가</button>
                     </div>
                 </div>
 
@@ -780,7 +780,7 @@
                 <div class="dashboard-section">
                     <div class="dashboard-section-title-row">
                         <h3><i class="fas fa-folder-open" style="color: var(--info-color);"></i> 진행 중인 프로젝트</h3>
-                        <a href="javascript:void(0)" class="dashboard-view-all" onclick="UI.switchPage('projects')">전체보기 <i class="fas fa-chevron-right"></i></a>
+                        <button type="button" class="dashboard-view-all" data-click-action="navigate-page" data-page="projects">전체보기 <i class="fas fa-chevron-right"></i></button>
                     </div>
                     <div id="dashboard-active-projects" class="dashboard-projects-grid"></div>
                 </div>
@@ -810,7 +810,7 @@
                 <div class="dashboard-section" style="margin-top: 2rem;">
                     <div class="dashboard-section-title-row">
                         <h3><i class="fas fa-clock-rotate-left" style="color: var(--accent-color);"></i> 최근 작업</h3>
-                        <a href="javascript:void(0)" class="dashboard-view-all" onclick="UI.switchPage('tasks')">작업 보드로 이동 <i class="fas fa-chevron-right"></i></a>
+                        <button type="button" class="dashboard-view-all" data-click-action="navigate-page" data-page="tasks">작업 보드로 이동 <i class="fas fa-chevron-right"></i></button>
                     </div>
                     <div class="dashboard-list" id="dashboard-recent-tasks"></div>
                 </div>
@@ -820,7 +820,7 @@
             <section id="projects-page" class="page-section">
                 <div class="section-header">
                     <div><h2>프로젝트 관리</h2><p>클라우드에 안전하게 저장된 내 프로젝트들입니다.</p></div>
-                    <button class="btn-primary" onclick="UI.openProjectModal('create')"><i class="fas fa-plus"></i> 새 프로젝트</button>
+                    <button class="btn-primary" data-click-action="project-create"><i class="fas fa-plus"></i> 새 프로젝트</button>
                 </div>
                 <div class="project-grid" id="project-container"></div>
             </section>
@@ -834,7 +834,7 @@
             <section id="tasks-page" class="page-section">
                 <div class="section-header">
                     <div><h2>작업 보드</h2><p>마우스로 카드를 끌어다 놓아 상태를 변경하세요.</p></div>
-                    <button class="btn-primary" onclick="UI.openTaskModal('create')"><i class="fas fa-plus"></i> 새 작업 추가</button>
+                    <button class="btn-primary" data-click-action="task-create"><i class="fas fa-plus"></i> 새 작업 추가</button>
                 </div>
                 <div class="task-filter-bar" id="task-filter-bar">
                     <div class="task-filter-item">
@@ -911,9 +911,9 @@
                 </div>
                 <!-- 모바일 칸반 페이지 인디케이터 (모바일 화면에서만 표시) -->
                 <div class="kanban-mobile-indicator" id="kanban-mobile-indicator">
-                    <button type="button" class="kanban-indicator-dot active" data-page="0" onclick="setMobileKanbanPage(0)" aria-label="해야 할 일" title="해야 할 일 (1/3)"></button>
-                    <button type="button" class="kanban-indicator-dot" data-page="1" onclick="setMobileKanbanPage(1)" aria-label="진행 중" title="진행 중 (2/3)"></button>
-                    <button type="button" class="kanban-indicator-dot" data-page="2" onclick="setMobileKanbanPage(2)" aria-label="완료됨" title="완료됨 (3/3)"></button>
+                    <button type="button" class="kanban-indicator-dot active" data-click-action="mobile-kanban-page" data-page="0" aria-label="해야 할 일" title="해야 할 일 (1/3)"></button>
+                    <button type="button" class="kanban-indicator-dot" data-click-action="mobile-kanban-page" data-page="1" aria-label="진행 중" title="진행 중 (2/3)"></button>
+                    <button type="button" class="kanban-indicator-dot" data-click-action="mobile-kanban-page" data-page="2" aria-label="완료됨" title="완료됨 (3/3)"></button>
                 </div>
             </section>
 
@@ -948,10 +948,10 @@
                             <h3 id="calendar-month-title" class="calendar-month-title">-</h3>
                         </div>
                         <div class="calendar-nav-actions">
-                            <button type="button" class="btn-secondary btn-calendar-today" onclick="goToCalendarToday()">오늘</button>
+                            <button type="button" class="btn-secondary btn-calendar-today" data-click-action="calendar-today">오늘</button>
                             <div class="calendar-nav-arrows">
-                                <button type="button" class="btn-secondary btn-calendar-prev" onclick="changeCalendarNav(-1)" title="이전"><i class="fas fa-chevron-left"></i></button>
-                                <button type="button" class="btn-secondary btn-calendar-next" onclick="changeCalendarNav(1)" title="다음"><i class="fas fa-chevron-right"></i></button>
+                                <button type="button" class="btn-secondary btn-calendar-prev" data-click-action="calendar-nav" data-delta="-1" title="이전"><i class="fas fa-chevron-left"></i></button>
+                                <button type="button" class="btn-secondary btn-calendar-next" data-click-action="calendar-nav" data-delta="1" title="다음"><i class="fas fa-chevron-right"></i></button>
                             </div>
                         </div>
                     </div>
@@ -1088,8 +1088,11 @@
 
     <script src="js/project.js"></script>
     <script src="js/task.js"></script>
+    <script src="js/task-detail.js"></script>
+    <script src="js/task-dependencies.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/analytics.js"></script>
+    <script src="js/actions.js"></script>
 
     <script src="js/app.js"></script>
 </body>

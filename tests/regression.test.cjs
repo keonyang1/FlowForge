@@ -203,7 +203,7 @@ test('task-specific checklist refresh clears only its own cached rows', async ()
 
 function setupWrites() {
     const env = setup();
-    for (const file of ['task', 'calendar']) {
+    for (const file of ['task', 'task-detail', 'task-dependencies', 'calendar']) {
         vm.runInContext(fs.readFileSync(path.join(__dirname, '../js', file + '.js'), 'utf8'), env.ctx);
     }
     env.storage.setItem('flowforge_session', JSON.stringify({ user_id: 'u', nickname: 'U' }));
@@ -269,4 +269,63 @@ test('global search reapplies only to the active page after a refresh', () => {
     vm.runInContext('applyGlobalSearch()', ctx);
     assert.equal(cards[0].style.display, '');
     assert.equal(cards[1].style.display, 'none');
+});
+
+test('DOM action data preserves numeric and string identifiers', () => {
+    const { ctx } = setup();
+    assert.equal(vm.runInContext('readDataValue({ dataset: { recordId: "42" } }, "recordId")', ctx), 42);
+    assert.equal(vm.runInContext('readDataValue({ dataset: { recordId: "\\"task-1\\"" } }, "recordId")', ctx), 'task-1');
+    assert.equal(vm.runInContext('escapeDataValue(42)', ctx), '42');
+});
+
+test('delegated menu action reads the page from data attributes', () => {
+    const { ctx, ui } = setup();
+    const listeners = new Map();
+    ctx.document.addEventListener = (type, handler) => listeners.set(type, handler);
+    let page = null;
+    ui.switchPage = value => { page = value; };
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/actions.js'), 'utf8'), ctx);
+    vm.runInContext('initAppActions()', ctx);
+
+    const button = {
+        tagName: 'BUTTON',
+        dataset: { clickAction: 'navigate-page', page: 'tasks' },
+        closest() { return this; }
+    };
+    listeners.get('click')({ target: button, preventDefault() {}, stopPropagation() {} });
+    assert.equal(page, 'tasks');
+});
+
+test('every click action in markup and templates has a dispatcher', () => {
+    const jsDirectory = path.join(__dirname, '../js');
+    const sourceFiles = [
+        path.join(__dirname, '../index.html'),
+        ...fs.readdirSync(jsDirectory)
+            .filter(file => file.endsWith('.js'))
+            .map(file => path.join(jsDirectory, file))
+    ];
+    const actionSource = fs.readFileSync(path.join(jsDirectory, 'actions.js'), 'utf8');
+    const handledActions = new Set([...actionSource.matchAll(/case '([^']+)'/g)].map(match => match[1]));
+    const usedActions = new Set();
+
+    for (const file of sourceFiles) {
+        const source = fs.readFileSync(file, 'utf8');
+        for (const match of source.matchAll(/data-click-action=["']([^"']+)["']/g)) {
+            usedActions.add(match[1]);
+        }
+    }
+    for (const action of usedActions) assert.ok(handledActions.has(action), `Missing click handler: ${action}`);
+});
+
+test('HTML and generated templates have no inline event attributes', () => {
+    const sourceFiles = [
+        path.join(__dirname, '../index.html'),
+        ...fs.readdirSync(path.join(__dirname, '../js'))
+            .filter(file => file.endsWith('.js'))
+            .map(file => path.join(__dirname, '../js', file))
+    ];
+    const inlineEventAttribute = /(?:^|\s)on(?:click|dblclick|input|change|submit|reset|keydown|keyup|keypress|pointerdown|pointerup|pointermove|touchstart|touchend|touchmove|dragstart|dragend|dragover|dragleave|drop|focus|blur|load|error|mouseover|mouseout|mouseenter|mouseleave|contextmenu|wheel)\s*=/i;
+    for (const file of sourceFiles) {
+        assert.doesNotMatch(fs.readFileSync(file, 'utf8'), inlineEventAttribute, path.basename(file));
+    }
 });

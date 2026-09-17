@@ -104,7 +104,7 @@ function renderDashboard() {
                 const ddayColor = diff === null ? 'bg-default' : (diff > 0 ? 'bg-info' : (diff === 0 ? 'bg-warning' : 'bg-danger'));
 
                 activeProjsContainer.innerHTML += `
-                    <div class="dashboard-project-card" onclick="openProjectDetail(${escapeInlineJsArg(proj.id)})" title="프로젝트 상세 페이지로 이동">
+                    <div class="dashboard-project-card" data-click-action="project-open" data-record-id="${escapeDataValue(proj.id)}" title="프로젝트 상세 페이지로 이동">
                         <div class="dashboard-project-card-header">
                             <h4 class="dashboard-project-card-title">${escapeHtml(proj.title)}</h4>
                             <span class="badge ${ddayColor}" style="font-size: 0.7rem;">${ddayText}</span>
@@ -147,7 +147,7 @@ function renderDashboard() {
                 const prioKor = task.priority === 'High' ? '높음' : (task.priority === 'Medium' ? '보통' : '낮음');
 
                 overdueContainer.innerHTML += `
-                    <div class="dashboard-list-item" onclick="openTaskDetail(${escapeInlineJsArg(task.id)})" title="작업 상세 보기">
+                    <div class="dashboard-list-item" data-click-action="task-open" data-task-id="${escapeDataValue(task.id)}" title="작업 상세 보기">
                         <div class="dashboard-list-item-main">
                             <h4 class="dashboard-list-item-title">${escapeHtml(task.title)}</h4>
                             <div class="dashboard-list-item-meta">
@@ -186,7 +186,7 @@ function renderDashboard() {
                 const dtext = diff === 0 ? '오늘 마감' : `D-${diff}`;
 
                 urgentContainer.innerHTML += `
-                    <div class="dashboard-list-item" onclick="openTaskDetail(${escapeInlineJsArg(task.id)})" title="작업 상세 보기">
+                    <div class="dashboard-list-item" data-click-action="task-open" data-task-id="${escapeDataValue(task.id)}" title="작업 상세 보기">
                         <div class="dashboard-list-item-main">
                             <h4 class="dashboard-list-item-title">${escapeHtml(task.title)}</h4>
                             <div class="dashboard-list-item-meta">
@@ -233,7 +233,7 @@ function renderDashboard() {
                 const statusKor = task.status === 'Done' ? '완료됨' : (task.status === 'In Progress' ? '진행 중' : '해야 할 일');
 
                 recentContainer.innerHTML += `
-                    <div class="dashboard-list-item" onclick="openTaskDetail(${escapeInlineJsArg(task.id)})" title="작업 상세 보기">
+                    <div class="dashboard-list-item" data-click-action="task-open" data-task-id="${escapeDataValue(task.id)}" title="작업 상세 보기">
                         <div class="dashboard-list-item-main">
                             <h4 class="dashboard-list-item-title" style="${task.status === 'Done' ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${escapeHtml(task.title)}</h4>
                             <div class="dashboard-list-item-meta">
@@ -523,7 +523,7 @@ function renderAnalytics() {
                 const barColor = percent === 100 ? 'var(--success-color)' : 'var(--accent-color)';
 
                 ptContent.innerHTML += `
-                    <div class="analytics-project-item" onclick="openProjectDetail(${escapeInlineJsArg(proj.id)})" title="프로젝트 상세 보기로 이동">
+                    <div class="analytics-project-item" data-click-action="project-open" data-record-id="${escapeDataValue(proj.id)}" title="프로젝트 상세 보기로 이동">
                         <div class="analytics-project-header">
                             <span class="analytics-project-title">
                                 <i class="fas fa-folder" style="color: var(--accent-color); font-size: 0.85rem;"></i>

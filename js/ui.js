@@ -31,12 +31,9 @@ const UI = {
         document.querySelectorAll('main .page-section, .nav-item').forEach(el => el.classList.remove('active'));
         document.getElementById(pageId + '-page').classList.add('active');
         
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(nav => {
-            const oc = nav.getAttribute('onclick') || '';
-            if ((pageId === 'project-detail' && oc.includes('projects')) || oc.includes(pageId)) {
-                nav.classList.add('active');
-            }
+        const activePageId = pageId === 'project-detail' ? 'projects' : pageId;
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            nav.classList.toggle('active', nav.dataset.page === activePageId);
         });
         
         const searchBox = document.getElementById('global-search');
