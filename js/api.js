@@ -1,6 +1,60 @@
 // js/api.js
 
 const AppAPI = {
+    _sessionSerial: 0,
+    viewSession: null,
+
+    newSessionGeneration() {
+        if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+            return globalThis.crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random()}-${++this._sessionSerial}`;
+    },
+
+    captureSession(userId) {
+        const user = this.getUser();
+        if (!user || (userId !== undefined && user.user_id !== userId)) return null;
+        return {
+            userId: user.user_id,
+            generation: typeof user.__flowforgeSessionGeneration === "string"
+                ? user.__flowforgeSessionGeneration : null
+        };
+    },
+
+    isSessionCurrent(session) {
+        if (!session) return false;
+        const current = this.captureSession(session.userId);
+        return !!current && current.generation === session.generation;
+    },
+
+    bindViewSession(session) {
+        this.viewSession = session;
+    },
+
+    captureViewSession() {
+        return this.isSessionCurrent(this.viewSession) ? this.viewSession : null;
+    },
+
+    userCacheKey(kind, userId) {
+        if (kind !== "checklists" && kind !== "dependencies") return null;
+        return `flowforge_${kind}_${userId}`;
+    },
+
+    readUserCache(kind, userId, session) {
+        const key = this.userCacheKey(kind, userId);
+        if (!key || !this.isSessionCurrent(session) || (this.viewSession && !this.isSessionCurrent(this.viewSession))) return null;
+        try { return localStorage.getItem(key); } catch { return null; }
+    },
+
+    writeUserCache(kind, userId, value, session) {
+        const key = this.userCacheKey(kind, userId);
+        if (!key || !this.isSessionCurrent(session) || (this.viewSession && !this.isSessionCurrent(this.viewSession))) return false;
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch { return false; }
+    },
+
     // 공통 요청
     async fetch(payload) {
         const controller = new AbortController();
@@ -46,6 +100,7 @@ const AppAPI = {
     },
 
     async login(userId, password) {
+        const initialSession = this.captureSession();
         const result = await this.fetch({
             action: "login",
             user_id: userId,
@@ -55,17 +110,46 @@ const AppAPI = {
             return { success: false, message: "로그인 응답이 올바르지 않습니다." };
         }
         if (result.success) {
+            const previous = this.captureSession();
+            if ((initialSession && !this.isSessionCurrent(initialSession)) || (!initialSession && previous)) {
+                return { success: false, message: "로그인 중 세션이 변경되었습니다. 다시 시도해주세요." };
+            }
             localStorage.setItem(
                 "flowforge_session",
-                JSON.stringify(result.user)
+                JSON.stringify({
+                    ...result.user,
+                    __flowforgeSessionGeneration: this.newSessionGeneration()
+                })
             );
+            if (previous && previous.userId !== result.user.user_id) {
+                this.clearUserCaches(previous.userId);
+            }
+            this.purgeInactiveUserCaches(result.user.user_id);
         }
         return result;
     },
 
-    logout() {
+    logout(expectedSession = null) {
+        let current = null;
+        try {
+            const raw = localStorage.getItem("flowforge_session");
+            const user = raw ? JSON.parse(raw) : null;
+            if (user && typeof user.user_id === "string" && user.user_id) {
+                current = {
+                    userId: user.user_id,
+                    generation: typeof user.__flowforgeSessionGeneration === "string"
+                        ? user.__flowforgeSessionGeneration : null
+                };
+            }
+        } catch {}
+        if (expectedSession && (!current || current.userId !== expectedSession.userId || current.generation !== expectedSession.generation)) {
+            return false;
+        }
         try { localStorage.removeItem("flowforge_session"); } catch {}
+        if (current) this.clearUserCaches(current.userId);
+        this.purgeInactiveUserCaches();
         try { sessionStorage.removeItem("flowforge_current_page"); } catch {}
+        return true;
     },
 
     clearUserCaches(userId) {
@@ -75,6 +159,29 @@ const AppAPI = {
             localStorage.removeItem(`flowforge_dependencies_${userId}`);
         } catch (error) {
             console.warn("Failed to clear local user data:", error);
+        }
+    },
+
+    purgeInactiveUserCaches(activeUserId = null) {
+        const keep = activeUserId ? new Set([
+            `flowforge_checklists_${activeUserId}`,
+            `flowforge_dependencies_${activeUserId}`
+        ]) : new Set();
+        try {
+            if (typeof localStorage.key !== "function") return;
+            const stale = [];
+            for (let index = 0; index < localStorage.length; index++) {
+                const key = localStorage.key(index);
+                if (key && (key.startsWith("flowforge_checklists_") || key.startsWith("flowforge_dependencies_")) && !keep.has(key)) {
+                    stale.push(key);
+                }
+            }
+            for (const key of stale) {
+                if (activeUserId ? !this.captureSession(activeUserId) : !!this.captureSession()) return;
+                localStorage.removeItem(key);
+            }
+        } catch (error) {
+            console.warn("Failed to clear inactive user data:", error);
         }
     },
 
@@ -229,6 +336,7 @@ const AppAPI = {
     // Checklist
     // =========================
     async getChecklists(userId, taskId = null) {
+        const session = this.captureSession(userId);
         let list = [];
         let serverLoaded = false;
         try {
@@ -250,7 +358,7 @@ const AppAPI = {
 
         if (!serverLoaded) {
             try {
-                const cached = localStorage.getItem(`flowforge_checklists_${userId}`);
+                const cached = this.readUserCache("checklists", userId, session);
                 list = cached ? JSON.parse(cached) : [];
 
             } catch (e) {}
@@ -271,13 +379,12 @@ const AppAPI = {
         }
         unique.reverse();
 
-        if (serverLoaded) {
+        if (serverLoaded && this.isSessionCurrent(session)) {
             try {
-                const key = `flowforge_checklists_${userId}`;
-                const cached = JSON.parse(localStorage.getItem(key) || '[]');
+                const cached = JSON.parse(this.readUserCache("checklists", userId, session) || '[]');
                 const otherTasks = taskId && Array.isArray(cached)
                     ? cached.filter(item => item && item.task_id !== taskId) : [];
-                localStorage.setItem(key, JSON.stringify([...otherTasks, ...unique]));
+                this.writeUserCache("checklists", userId, [...otherTasks, ...unique], session);
             } catch (e) {}
         }
 
@@ -289,6 +396,7 @@ const AppAPI = {
     },
 
     async addChecklistItem(taskId, textOrItem, userId) {
+        const session = this.captureSession(userId);
         const text = typeof textOrItem === 'object' && textOrItem !== null ? (textOrItem.text || '') : textOrItem;
         try {
             const res = await this.fetch({
@@ -300,15 +408,14 @@ const AppAPI = {
 
             if (res && res.success) {
                 const created = res.checklist || res.item;
-                if (created) {
+                if (created && this.isSessionCurrent(session)) {
                     try {
-                        const cacheKey = `flowforge_checklists_${userId}`;
-                        const cached = localStorage.getItem(cacheKey);
+                        const cached = this.readUserCache("checklists", userId, session);
                         let all = cached ? JSON.parse(cached) : [];
                         if (!Array.isArray(all)) all = [];
                         if (!all.some(c => c.id === created.id)) {
                             all.push(created);
-                            localStorage.setItem(cacheKey, JSON.stringify(all));
+                            this.writeUserCache("checklists", userId, all, session);
                         }
                     } catch (e) {}
                 }
@@ -333,6 +440,7 @@ const AppAPI = {
             updates = param2;
             userId = param3;
         }
+        const session = this.captureSession(userId);
 
         // 로컬 캐시 인플레이스 갱신
         try {
@@ -345,17 +453,16 @@ const AppAPI = {
             });
             if (!res.success) return res;
             try {
-                const cacheKey = `flowforge_checklists_${userId}`;
-                const cached = localStorage.getItem(cacheKey);
+                const cached = this.readUserCache("checklists", userId, session);
                 let all = cached ? JSON.parse(cached) : [];
-                if (Array.isArray(all)) {
+                if (Array.isArray(all) && this.isSessionCurrent(session)) {
                     all = all.map(c => {
                         if (c.id === checklistId) {
                             return { ...c, ...updates };
                         }
                         return c;
                     });
-                    localStorage.setItem(cacheKey, JSON.stringify(all));
+                    this.writeUserCache("checklists", userId, all, session);
                 }
             } catch (e) {
                 console.warn("[Checklist API] Local cache update error:", e);
@@ -378,6 +485,7 @@ const AppAPI = {
             checklistId = param1;
             userId = param2;
         }
+        const session = this.captureSession(userId);
 
         // 로컬 캐시 삭제
         try {
@@ -389,12 +497,11 @@ const AppAPI = {
             });
             if (!res.success) return res;
             try {
-                const cacheKey = `flowforge_checklists_${userId}`;
-                const cached = localStorage.getItem(cacheKey);
+                const cached = this.readUserCache("checklists", userId, session);
                 let all = cached ? JSON.parse(cached) : [];
-                if (Array.isArray(all)) {
+                if (Array.isArray(all) && this.isSessionCurrent(session)) {
                     all = all.filter(c => c.id !== checklistId);
-                    localStorage.setItem(cacheKey, JSON.stringify(all));
+                    this.writeUserCache("checklists", userId, all, session);
                 }
             } catch (e) {
                 console.warn("[Checklist API] Local cache delete error:", e);
@@ -408,6 +515,7 @@ const AppAPI = {
     },
 
     async saveTaskChecklists(taskId, items, userId) {
+        const session = this.captureSession(userId);
         try {
             const res = await this.fetch({
                 action: "save_task_checklists",
@@ -417,9 +525,9 @@ const AppAPI = {
             });
             if (!res.success) return res;
             try {
-                const cacheKey = `flowforge_checklists_${userId}`;
-                const cached = localStorage.getItem(cacheKey);
+                const cached = this.readUserCache("checklists", userId, session);
                 let all = cached ? JSON.parse(cached) : [];
+                if (!this.isSessionCurrent(session)) return res;
                 if (!Array.isArray(all)) all = [];
                 all = all.filter(item => item.task_id !== taskId);
                 const now = new Date().toISOString();
@@ -440,7 +548,7 @@ const AppAPI = {
                     });
                 }
                 all.push(...normalizedItems);
-                localStorage.setItem(cacheKey, JSON.stringify(all));
+                this.writeUserCache("checklists", userId, all, session);
             } catch (e) {
                 console.warn("[Checklist API] Local cache update error:", e);
             }
@@ -456,6 +564,7 @@ const AppAPI = {
     // Dependencies
     // =========================
     async getDependencies(userId) {
+        const session = this.captureSession(userId);
         let list = [];
         let serverLoaded = false;
         try {
@@ -473,7 +582,7 @@ const AppAPI = {
 
         if (!serverLoaded) {
             try {
-                const cached = localStorage.getItem(`flowforge_dependencies_${userId}`);
+                const cached = this.readUserCache("dependencies", userId, session);
                 list = cached ? JSON.parse(cached) : [];
             } catch (e) {}
         }
@@ -491,9 +600,7 @@ const AppAPI = {
         }
         unique.reverse();
 
-        try {
-            localStorage.setItem(`flowforge_dependencies_${userId}`, JSON.stringify(unique));
-        } catch (e) {}
+        this.writeUserCache("dependencies", userId, unique, session);
 
         return {
             success: true,
@@ -503,6 +610,7 @@ const AppAPI = {
     },
 
     async addDependency(taskId, dependsOnTaskId, userId) {
+        const session = this.captureSession(userId);
         try {
             const res = await this.fetch({
                 action: "add_dependency",
@@ -511,15 +619,14 @@ const AppAPI = {
                 depends_on_task_id: dependsOnTaskId
             });
 
-            if (res && res.success && res.dependency) {
+            if (res && res.success && res.dependency && this.isSessionCurrent(session)) {
                 try {
-                    const cacheKey = `flowforge_dependencies_${userId}`;
-                    const cached = localStorage.getItem(cacheKey);
+                    const cached = this.readUserCache("dependencies", userId, session);
                     let all = cached ? JSON.parse(cached) : [];
                     if (!Array.isArray(all)) all = [];
                     if (!all.some(d => d.id === res.dependency.id)) {
                         all.push(res.dependency);
-                        localStorage.setItem(cacheKey, JSON.stringify(all));
+                        this.writeUserCache("dependencies", userId, all, session);
                     }
                 } catch (e) {}
             }
@@ -531,6 +638,7 @@ const AppAPI = {
     },
 
     async deleteDependency(dependencyId, userId) {
+        const session = this.captureSession(userId);
         try {
             const res = await this.fetch({
                 action: "delete_dependency",
@@ -539,12 +647,11 @@ const AppAPI = {
             });
             if (!res.success) return res;
             try {
-                const cacheKey = `flowforge_dependencies_${userId}`;
-                const cached = localStorage.getItem(cacheKey);
+                const cached = this.readUserCache("dependencies", userId, session);
                 let all = cached ? JSON.parse(cached) : [];
-                if (Array.isArray(all)) {
+                if (Array.isArray(all) && this.isSessionCurrent(session)) {
                     all = all.filter(d => d.id !== dependencyId);
-                    localStorage.setItem(cacheKey, JSON.stringify(all));
+                    this.writeUserCache("dependencies", userId, all, session);
                 }
             } catch (e) {}
 

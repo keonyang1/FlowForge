@@ -318,30 +318,24 @@ function renderTasks() {
 }
 
 function deleteTask(taskId) {
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
     UI.confirm('작업 삭제', '이 작업을 삭제하시겠습니까?<br>삭제된 작업은 복구할 수 없습니다.', async () => {
+        if (!AppAPI.isSessionCurrent(session)) return;
         UI.setGlobalLoading(true);
         try {
-            const res = await AppAPI.deleteTask(taskId, AppAPI.getUser().user_id);
+            const res = await AppAPI.deleteTask(taskId, session.userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if(res.success) {
                 // 체크리스트 메모리 및 로컬 캐시 정리
                 if (typeof currentChecklists !== 'undefined') {
                     currentChecklists = currentChecklists.filter(c => c.task_id !== taskId);
-                    const user = AppAPI.getUser();
-                    if (user && user.user_id) {
-                        try {
-                            localStorage.setItem("flowforge_checklists_" + user.user_id, JSON.stringify(currentChecklists));
-                        } catch (e) {}
-                    }
+                    AppAPI.writeUserCache("checklists", session.userId, currentChecklists, session);
                 }
                 // 의존성 메모리 및 로컬 캐시 정리
                 if (typeof currentDependencies !== 'undefined') {
                     currentDependencies = currentDependencies.filter(d => d.task_id !== taskId && d.depends_on_task_id !== taskId);
-                    const user = AppAPI.getUser();
-                    if (user && user.user_id) {
-                        try {
-                            localStorage.setItem("flowforge_dependencies_" + user.user_id, JSON.stringify(currentDependencies));
-                        } catch (e) {}
-                    }
+                    AppAPI.writeUserCache("dependencies", session.userId, currentDependencies, session);
                 }
                 UI.showToast('작업이 삭제되었습니다.');
                 if (typeof currentDetailTaskId !== 'undefined' && currentDetailTaskId === taskId) {
@@ -353,7 +347,7 @@ function deleteTask(taskId) {
                 UI.showToast(res.message, 'error');
             }
         } catch (e) {
-            UI.showToast(e.message || '작업 삭제 중 오류가 발생했습니다.', 'error');
+            if (AppAPI.isSessionCurrent(session)) UI.showToast(e.message || '작업 삭제 중 오류가 발생했습니다.', 'error');
         } finally {
             UI.setGlobalLoading(false);
         }

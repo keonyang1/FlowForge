@@ -151,6 +151,10 @@ function resetCalendarUI() {
 
     const gridBody = document.getElementById('calendar-grid-body');
     if (gridBody) gridBody.innerHTML = '';
+    if (weekWrap) weekWrap.innerHTML = '';
+    if (dayWrap) dayWrap.innerHTML = '';
+    const dayModal = document.getElementById('calendar-day-modal-content');
+    if (dayModal) dayModal.innerHTML = '';
 }
 
 // 캘린더 메인 렌더링 라우터

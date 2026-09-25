@@ -188,7 +188,7 @@ function renderTaskChecklist(taskId) {
 }
 
 function updateChecklistView(taskId) {
-    renderTaskChecklist(taskId);
+    if (currentDetailTaskId === taskId) renderTaskChecklist(taskId);
     renderTasks();
     if (typeof currentProjectId !== 'undefined' && currentProjectId && typeof renderProjectDetail === 'function') {
         renderProjectDetail(currentProjectId);
@@ -204,6 +204,9 @@ async function toggleChecklistItem(taskId, itemId) {
 
     const item = currentChecklists.find(c => c.id === itemId);
     if (!item) return;
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
+    const userId = session.userId;
 
     updatingChecklistItems.add(itemId);
     const prevStatus = item.is_completed;
@@ -213,20 +216,17 @@ async function toggleChecklistItem(taskId, itemId) {
     item.is_completed = nextStatus;
     updateChecklistView(taskId);
 
-    const user = typeof AppAPI !== 'undefined' && AppAPI.getUser ? AppAPI.getUser() : null;
-    const userId = user ? user.user_id : '';
-
     try {
         if (typeof AppAPI !== 'undefined' && AppAPI.updateChecklistItem && userId) {
             const res = await AppAPI.updateChecklistItem(itemId, { is_completed: nextStatus }, userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (!res || res.success === false) {
                 throw new Error(res ? res.message : '상태 저장 실패');
             }
-            try {
-                localStorage.setItem(`flowforge_checklists_${userId}`, JSON.stringify(currentChecklists));
-            } catch (e) {}
+            AppAPI.writeUserCache("checklists", userId, currentChecklists, session);
         }
     } catch (err) {
+        if (!AppAPI.isSessionCurrent(session)) return;
         console.error('Failed to toggle checklist item:', err);
         // 실패 시 이전 상태로 안전하게 롤백
         item.is_completed = prevStatus;
@@ -249,18 +249,19 @@ async function addChecklistItem(taskId) {
         if (input) input.focus();
         return;
     }
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
+    const userId = session.userId;
 
     isAddingChecklist = true;
     if (btn) btn.disabled = true;
     if (input) input.disabled = true;
 
-    const user = typeof AppAPI !== 'undefined' && AppAPI.getUser ? AppAPI.getUser() : null;
-    const userId = user ? user.user_id : '';
-
     let saved = false;
     try {
         if (typeof AppAPI !== 'undefined' && AppAPI.addChecklistItem && userId) {
             const res = await AppAPI.addChecklistItem(taskId, text, userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (!res || res.success === false) {
                 throw new Error(res ? res.message : '체크리스트 추가 실패');
             }
@@ -273,25 +274,26 @@ async function addChecklistItem(taskId) {
                 if (!currentChecklists.some(c => c.id === createdItem.id)) {
                     currentChecklists.push({ ...createdItem, is_completed: normalizeBoolean(createdItem.is_completed) });
                 }
-                try {
-                    localStorage.setItem(`flowforge_checklists_${userId}`, JSON.stringify(currentChecklists));
-                } catch (e) {}
+                AppAPI.writeUserCache("checklists", userId, currentChecklists, session);
             }
             saved = true;
             updateChecklistView(taskId);
         }
     } catch (err) {
+        if (!AppAPI.isSessionCurrent(session)) return;
         console.error('Failed to add checklist item:', err);
         UI.showToast(err.message || '체크리스트 추가 중 오류가 발생했습니다.', 'error');
     } finally {
         isAddingChecklist = false;
-        const nextInput = document.getElementById(`checklist-new-input-${taskId}`);
-        const nextBtn = document.getElementById(`btn-add-checklist-${taskId}`);
-        if (nextBtn) nextBtn.disabled = false;
-        if (nextInput) {
-            nextInput.disabled = false;
-            nextInput.value = saved ? '' : text;
-            nextInput.focus();
+        if (AppAPI.isSessionCurrent(session)) {
+            const nextInput = document.getElementById(`checklist-new-input-${taskId}`);
+            const nextBtn = document.getElementById(`btn-add-checklist-${taskId}`);
+            if (nextBtn) nextBtn.disabled = false;
+            if (nextInput) {
+                nextInput.disabled = false;
+                nextInput.value = saved ? '' : text;
+                nextInput.focus();
+            }
         }
     }
 }
@@ -343,25 +345,25 @@ async function saveEditChecklistItem(taskId, itemId) {
     if (typeof currentChecklists === 'undefined') return;
     const item = currentChecklists.find(c => c.id === itemId);
     if (!item) return;
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
+    const userId = session.userId;
 
     const prevText = item.text;
     item.text = text;
     updateChecklistView(taskId);
 
-    const user = typeof AppAPI !== 'undefined' && AppAPI.getUser ? AppAPI.getUser() : null;
-    const userId = user ? user.user_id : '';
-
     try {
         if (typeof AppAPI !== 'undefined' && AppAPI.updateChecklistItem && userId) {
             const res = await AppAPI.updateChecklistItem(itemId, { text: text }, userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (!res || res.success === false) {
                 throw new Error(res ? res.message : '수정 실패');
             }
-            try {
-                localStorage.setItem(`flowforge_checklists_${userId}`, JSON.stringify(currentChecklists));
-            } catch (e) {}
+            AppAPI.writeUserCache("checklists", userId, currentChecklists, session);
         }
     } catch (err) {
+        if (!AppAPI.isSessionCurrent(session)) return;
         console.error('Failed to update checklist item text:', err);
         item.text = prevText;
         updateChecklistView(taskId);
@@ -373,25 +375,25 @@ async function deleteChecklistItem(taskId, itemId) {
     if (typeof currentChecklists === 'undefined') return;
     const idx = currentChecklists.findIndex(c => c.id === itemId);
     if (idx === -1) return;
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
+    const userId = session.userId;
 
     const deletedItem = currentChecklists[idx];
     currentChecklists.splice(idx, 1);
     updateChecklistView(taskId);
 
-    const user = typeof AppAPI !== 'undefined' && AppAPI.getUser ? AppAPI.getUser() : null;
-    const userId = user ? user.user_id : '';
-
     try {
         if (typeof AppAPI !== 'undefined' && AppAPI.deleteChecklistItem && userId) {
             const res = await AppAPI.deleteChecklistItem(itemId, userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (!res || res.success === false) {
                 throw new Error(res ? res.message : '삭제 실패');
             }
-            try {
-                localStorage.setItem(`flowforge_checklists_${userId}`, JSON.stringify(currentChecklists));
-            } catch (e) {}
+            AppAPI.writeUserCache("checklists", userId, currentChecklists, session);
         }
     } catch (err) {
+        if (!AppAPI.isSessionCurrent(session)) return;
         console.error('Failed to delete checklist item:', err);
         currentChecklists.splice(idx, 0, deletedItem);
         updateChecklistView(taskId);

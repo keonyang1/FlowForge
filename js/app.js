@@ -60,6 +60,7 @@ function initMobileMenu() {
 // 앱 초기화 유틸
 function resetAppUI() {
     appLoadVersion++;
+    AppAPI.bindViewSession(null);
     UI.setSyncState("idle");
     document.querySelectorAll(".modal-overlay.show").forEach(modal => UI.closeModal(modal.id));
     currentProjects = [];
@@ -102,9 +103,32 @@ function resetAppUI() {
     setElemHtml('analytics-due-content', '');
     setElemHtml('analytics-summary-content', '');
     setElemHtml('analytics-project-tasks-content', '');
+    for (const id of ['task-detail-body', 'task-detail-footer', 'dep-candidate-list', 'task-dependency-modal-subtitle', 'calendar-day-modal-content', 'toast-container']) {
+        setElemHtml(id, '');
+    }
+    const dependencySearch = document.getElementById('dep-search-input');
+    if (dependencySearch) dependencySearch.value = '';
             
     document.getElementById('header-nickname').textContent = '로딩중...';
     document.getElementById('header-avatar-initial').textContent = 'U';
+    setElemText('dropdown-nickname', '');
+    setElemText('dropdown-user-id', '');
+    setElemText('dashboard-greeting', '');
+    setElemText('dropdown-avatar-initial', 'U');
+    setElemText('profile-avatar-initial', 'U');
+    const search = document.getElementById('global-search');
+    if (search) search.value = '';
+    for (const id of ['header-avatar-img', 'dropdown-avatar-img', 'profile-avatar-preview']) {
+        const image = document.getElementById(id);
+        if (image) {
+            image.removeAttribute('src');
+            image.style.display = 'none';
+        }
+    }
+    for (const id of ['header-avatar-initial', 'dropdown-avatar-initial']) {
+        const initial = document.getElementById(id);
+        if (initial) initial.style.display = 'block';
+    }
     
     if (typeof resetTaskFilters === 'function') resetTaskFilters();
     const projFilterSelect = document.getElementById('task-filter-project');
@@ -127,15 +151,21 @@ function resetAppUI() {
     document.getElementById('form-login').reset();
     document.getElementById('form-register').reset();
     document.getElementById('form-profile').reset();
+    for (const id of ['form-project', 'form-task', 'form-password', 'form-delete-account']) {
+        const form = document.getElementById(id);
+        if (form) form.reset();
+    }
     document.querySelectorAll('.pw-input-wrapper input').forEach(input => { input.type = 'password'; });
     document.querySelectorAll('.pw-toggle-btn i').forEach(icon => { icon.className = 'fas fa-eye'; });
 }
 
 async function loadAppData() {
+    const session = AppAPI.captureViewSession();
+    if (!session) { UI.setSyncState("idle"); return false; }
     const user = AppAPI.getUser();
-    if (!user) { UI.setSyncState("idle"); return false; }
+    if (!user || user.user_id !== session.userId) { UI.setSyncState("idle"); return false; }
     const loadVersion = ++appLoadVersion;
-    const isCurrent = () => loadVersion === appLoadVersion && AppAPI.getUser()?.user_id === user.user_id;
+    const isCurrent = () => loadVersion === appLoadVersion && AppAPI.isSessionCurrent(session);
     UI.setSyncState("loading");
     UI.setGlobalLoading(true);
     try {

@@ -126,22 +126,21 @@ async function updateProjectStatus(projId, status) {
 }
 
 function deleteProject(projId) {
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
     UI.confirm('프로젝트 삭제', '이 프로젝트를 삭제하시겠습니까?<br>프로젝트와 관련된 모든 작업이 함께 삭제됩니다.', async () => {
+        if (!AppAPI.isSessionCurrent(session)) return;
         UI.setGlobalLoading(true);
         try {
-            const res = await AppAPI.deleteProject(projId, AppAPI.getUser().user_id);
+            const res = await AppAPI.deleteProject(projId, session.userId);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (res.success) {
                 if (typeof currentChecklists !== 'undefined' && typeof currentTasks !== 'undefined') {
                     const taskIdsToRemove = new Set(currentTasks.filter(t => t.project_id === projId).map(t => t.id));
                     currentChecklists = currentChecklists.filter(c => !taskIdsToRemove.has(c.task_id));
                     currentDependencies = currentDependencies.filter(d => !taskIdsToRemove.has(d.task_id) && !taskIdsToRemove.has(d.depends_on_task_id));
-                    const user = AppAPI.getUser();
-                    if (user && user.user_id) {
-                        try {
-                            localStorage.setItem("flowforge_checklists_" + user.user_id, JSON.stringify(currentChecklists));
-                            localStorage.setItem("flowforge_dependencies_" + user.user_id, JSON.stringify(currentDependencies));
-                        } catch (e) {}
-                    }
+                    AppAPI.writeUserCache("checklists", session.userId, currentChecklists, session);
+                    AppAPI.writeUserCache("dependencies", session.userId, currentDependencies, session);
                 }
                 UI.showToast('프로젝트가 삭제되었습니다.');
                 if (currentProjectId === projId) {
@@ -153,7 +152,7 @@ function deleteProject(projId) {
                 UI.showToast(res.message, 'error');
             }
         } catch (e) {
-            UI.showToast(e.message || '프로젝트 삭제 중 오류가 발생했습니다.', 'error');
+            if (AppAPI.isSessionCurrent(session)) UI.showToast(e.message || '프로젝트 삭제 중 오류가 발생했습니다.', 'error');
         } finally {
             UI.setGlobalLoading(false);
         }

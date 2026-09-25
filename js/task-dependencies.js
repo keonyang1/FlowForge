@@ -277,6 +277,8 @@ async function submitAddDependency() {
 
     const user = AppAPI.getUser();
     if (!user) return;
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
 
     const submitBtn = document.getElementById('btn-submit-dependency');
     isDepSubmitting = true;
@@ -284,6 +286,7 @@ async function submitAddDependency() {
 
     try {
         const res = await AppAPI.addDependency(taskId, dependsOnTaskId, user.user_id);
+        if (!AppAPI.isSessionCurrent(session)) return;
         if (!res || !res.success) {
             throw new Error((res && res.message) || "선행 작업 추가에 실패했습니다.");
         }
@@ -299,16 +302,19 @@ async function submitAddDependency() {
             renderProjectDetail(currentProjectId);
         }
     } catch (e) {
+        if (!AppAPI.isSessionCurrent(session)) return;
         UI.showToast(e.message || "선행 작업 추가 중 오류가 발생했습니다.", "error");
         UI.unlockButton(submitBtn);
         if (submitBtn) submitBtn.disabled = !selectedDepCandidateId;
     } finally {
         isDepSubmitting = false;
-        UI.unlockButton(submitBtn);
+        if (AppAPI.isSessionCurrent(session)) UI.unlockButton(submitBtn);
     }
 }
 
 function deleteDependency(depId, taskId) {
+    const session = AppAPI.captureViewSession();
+    if (!session) return;
     const isDetailOpen = document.getElementById('task-detail-modal')?.classList.contains('show');
     if (isDetailOpen) {
         UI.closeModal('task-detail-modal');
@@ -318,11 +324,7 @@ function deleteDependency(depId, taskId) {
         "선행 작업 연결 해제",
         "이 선행 작업과의 의존성 연결을 해제하시겠습니까?<br>작업 데이터 자체는 삭제되지 않습니다.",
         async () => {
-            const user = AppAPI.getUser();
-            if (!user) {
-                if (isDetailOpen) openTaskDetail(taskId);
-                return;
-            }
+            if (!AppAPI.isSessionCurrent(session)) return;
 
             const backup = [...currentDependencies];
             currentDependencies = currentDependencies.filter(d => d.id !== depId);
@@ -337,12 +339,14 @@ function deleteDependency(depId, taskId) {
             }
 
             try {
-                const res = await AppAPI.deleteDependency(depId, user.user_id);
+                const res = await AppAPI.deleteDependency(depId, session.userId);
+                if (!AppAPI.isSessionCurrent(session)) return;
                 if (!res || !res.success) {
                     throw new Error((res && res.message) || "선행 작업 삭제 중 오류가 발생했습니다.");
                 }
                 UI.showToast("선행 작업 연결이 해제되었습니다.");
             } catch (e) {
+                if (!AppAPI.isSessionCurrent(session)) return;
                 currentDependencies = backup;
                 renderTasks();
                 if (typeof renderProjectDetail === 'function' && typeof currentProjectId !== 'undefined' && currentProjectId) {
@@ -356,7 +360,7 @@ function deleteDependency(depId, taskId) {
         },
         () => {
             // 취소 시: Task Detail 모달 복구
-            if (isDetailOpen) {
+            if (isDetailOpen && AppAPI.isSessionCurrent(session)) {
                 openTaskDetail(taskId);
             }
         }

@@ -30,6 +30,34 @@ function closeHelpModal() {
 }
 
 function initAuth() {
+    let displayedSession = null;
+    const reconcileSession = () => {
+        if (!displayedSession || AppAPI.isSessionCurrent(displayedSession)) return;
+        const current = AppAPI.captureSession();
+        if (!current || current.userId !== displayedSession.userId) {
+            AppAPI.clearUserCaches(displayedSession.userId);
+        }
+        displayedSession = null;
+        resetAppUI();
+        document.getElementById('auth-overlay').classList.add('show');
+    };
+    window.addEventListener('storage', event => {
+        if (event.key === 'flowforge_session' || event.key === null) reconcileSession();
+    });
+    window.addEventListener('focus', reconcileSession);
+    window.addEventListener('pageshow', reconcileSession);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reconcileSession();
+    });
+    const blockStaleViewAction = event => {
+        if (!displayedSession || AppAPI.isSessionCurrent(displayedSession)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        reconcileSession();
+    };
+    for (const type of ['click', 'change', 'input', 'keydown', 'submit', 'dragstart', 'drop', 'touchend']) {
+        document.addEventListener(type, blockStaleViewAction, true);
+    }
 
     const btnHelp = document.getElementById("btn-help");
     if (btnHelp) {
@@ -72,6 +100,7 @@ function initAuth() {
     
     // 프로필 수정 모달 열기
     document.getElementById('btn-edit-profile').onclick = () => {
+        if (!AppAPI.captureViewSession()) { reconcileSession(); return; }
         const user = AppAPI.getUser();
         if (!user) return;
         const preview = document.getElementById("profile-avatar-preview");
@@ -100,24 +129,25 @@ function initAuth() {
     };
 
     document.getElementById("btn-remove-avatar").onclick = async () => {
+        const session = AppAPI.captureViewSession();
+        if (!session) { reconcileSession(); return; }
         const user = AppAPI.getUser();
-        if (!user.avatar_url) {
+        if (!user || !user.avatar_url) {
             UI.showToast("삭제할 프로필 사진이 없습니다.", "warning");
             return;
         }
         UI.closeModal("profile-modal");
         UI.confirm("프로필 사진 삭제", "현재 프로필 사진을 삭제하시겠습니까?", async () => {
+            if (!AppAPI.isSessionCurrent(session)) return;
             UI.setGlobalLoading(true);
             try {
                 const res = await AppAPI.removeAvatar(user.user_id);
+                if (!AppAPI.isSessionCurrent(session)) return;
                 if (!res.success)
                     throw new Error(res.message);
                 // 세션 갱신
                 user.avatar_url = "";
-                localStorage.setItem(
-                    "flowforge_session",
-                    JSON.stringify(user)
-                );
+                persistProfileUI(user, session);
                 // 프로필 수정 모달 갱신
                 document.getElementById("profile-avatar-preview").style.display = "none";
                 document.getElementById("profile-avatar-initial").style.display = "block";
@@ -128,7 +158,7 @@ function initAuth() {
                 updateAvatarUI(user);
                 UI.showToast("프로필 사진이 삭제되었습니다.");
             } catch (err) {
-                UI.showToast(err.message || "삭제에 실패했습니다.", "error");
+                if (AppAPI.isSessionCurrent(session)) UI.showToast(err.message || "삭제에 실패했습니다.", "error");
             } finally {
                 UI.setGlobalLoading(false);
             }
@@ -136,6 +166,8 @@ function initAuth() {
     };
 
     document.getElementById("profile-avatar-file").addEventListener("change",(e) => {
+        const session = AppAPI.captureViewSession();
+        if (!session) { reconcileSession(); return; }
         const file=e.target.files[0];
         if(!file) return;
         const fileError = getAvatarFileError(file);
@@ -146,6 +178,7 @@ function initAuth() {
         }
         const reader=new FileReader();
         reader.onload=() => {
+            if (!AppAPI.isSessionCurrent(session)) return;
             document.getElementById("profile-avatar-preview").src=reader.result;
             document.getElementById("profile-avatar-preview").style.display="block";
             document.getElementById("profile-avatar-initial").style.display="none";
@@ -186,8 +219,12 @@ function initAuth() {
         const originalText = btn.textContent;
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 저장 중...';
 
+        let session = null;
         try {
+            session = AppAPI.captureViewSession();
+            if (!session) { reconcileSession(); return; }
             let user = AppAPI.getUser();
+            if (!user) throw new Error('로그인이 필요합니다.');
             let profileSuccess = false;
             
             // 1. 닉네임 변경 API 호출 로직 
@@ -202,8 +239,9 @@ function initAuth() {
                     );
                 if (!profileRes.success)
                     throw new Error(profileRes.message);
+                if (!AppAPI.isSessionCurrent(session)) return;
                 user.nickname = newNickname;
-                persistProfileUI(user);
+                persistProfileUI(user, session);
                 profileSuccess = true;
             }
 
@@ -218,16 +256,18 @@ function initAuth() {
                     reader.onabort = () => reject(new Error('이미지 읽기가 취소되었습니다.'));
                     reader.readAsDataURL(avatarFile);
                 });
+                if (!AppAPI.isSessionCurrent(session)) return;
                 const avatarRes = await AppAPI.uploadAvatar(user.user_id, base64);
                 if (!avatarRes.success) throw new Error(avatarRes.message);
+                if (!AppAPI.isSessionCurrent(session)) return;
                 user.avatar_url = avatarRes.avatar_url;
-                persistProfileUI(user);
+                persistProfileUI(user, session);
                 profileSuccess = true;
             }
 
             // 변경사항 적용
             if (profileSuccess) {
-                persistProfileUI(user);
+                persistProfileUI(user, session);
                 UI.showToast("프로필이 성공적으로 업데이트되었습니다.");
                 UI.closeModal("profile-modal");
 
@@ -236,13 +276,16 @@ function initAuth() {
                  UI.closeModal('profile-modal');
             }
         } catch (err) {
-            UI.showToast(err.message || "오류가 발생했습니다.", 'error');
+            if (!session || AppAPI.isSessionCurrent(session)) UI.showToast(err.message || "오류가 발생했습니다.", 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = originalText;
         }
-        btn.disabled = false; btn.textContent = originalText;
     };
 
     document.getElementById("form-password").onsubmit = async (e) => {
         e.preventDefault();
+        const session = AppAPI.captureViewSession();
+        if (!session) { reconcileSession(); return; }
         const button = document.getElementById("btn-submit-password");
         if (button.disabled) return;
         const currentPw = document.getElementById("pw-current").value;
@@ -260,15 +303,15 @@ function initAuth() {
         UI.lockButton(button, "변경 중...");
         UI.setGlobalLoading(true);
         try {
-            const user = AppAPI.getUser();
-            const res = await AppAPI.updatePassword(user.user_id, currentPw, newPw);
+            const res = await AppAPI.updatePassword(session.userId, currentPw, newPw);
+            if (!AppAPI.isSessionCurrent(session)) return;
             if (!res.success)
                 throw new Error(res.message);
             UI.showToast("비밀번호가 변경되었습니다.");
             UI.closeModal("password-modal");
             document.getElementById("form-password").reset();
         } catch (err) {
-            UI.showToast(err.message, "error");
+            if (AppAPI.isSessionCurrent(session)) UI.showToast(err.message, "error");
         } finally {
             UI.unlockButton(button);
             UI.setGlobalLoading(false);
@@ -277,18 +320,24 @@ function initAuth() {
 
     document.getElementById("form-delete-account").onsubmit = async (e) => {
         e.preventDefault();
+        const session = AppAPI.captureViewSession();
+        if (!session) { reconcileSession(); return; }
         const pw = document.getElementById("delete-current-password").value.trim();
         UI.closeModal("delete-account-modal");
         UI.confirm("회원 탈퇴", "정말 회원 탈퇴하시겠습니까?<br><br>모든 프로젝트와 작업이 함께 영구 삭제됩니다.<br>삭제된 데이터는 복구할 수 없습니다.", async () => {
+            if (!AppAPI.isSessionCurrent(session)) return;
             UI.setGlobalLoading(true);
             try {
-                const user = AppAPI.getUser();
-                if (!user) throw new Error("로그인이 필요합니다.");
-                const res = await AppAPI.deleteAccount(user.user_id, pw);
+                const res = await AppAPI.deleteAccount(session.userId, pw);
+                if (!AppAPI.isSessionCurrent(session)) {
+                    if (res.success) AppAPI.clearUserCaches(session.userId);
+                    return;
+                }
                 if (res.success) {
+                    AppAPI.clearUserCaches(session.userId);
+                    if (!AppAPI.logout(session)) return;
+                    displayedSession = null;
                     UI.showToast("회원 탈퇴가 완료되었습니다.");
-                    AppAPI.clearUserCaches(user.user_id);
-                    AppAPI.logout();
                     resetAppUI();
                     document
                         .getElementById("auth-overlay")
@@ -297,7 +346,7 @@ function initAuth() {
                     UI.showToast(res.message, "error");
                 }
             } catch (err) {
-                UI.showToast(err.message, "error");
+                if (AppAPI.isSessionCurrent(session)) UI.showToast(err.message, "error");
             } finally {
                 UI.setGlobalLoading(false);
             }
@@ -306,14 +355,22 @@ function initAuth() {
 
     // 로그아웃 로직
     document.getElementById('btn-logout').onclick = () => { 
-        AppAPI.logout();
+        if (displayedSession && !AppAPI.isSessionCurrent(displayedSession)) {
+            reconcileSession();
+            return;
+        }
+        if (displayedSession) AppAPI.logout(displayedSession);
+        displayedSession = null;
         document.getElementById('profile-dropdown').classList.remove('show'); 
         resetAppUI();
         document.getElementById('auth-overlay').classList.add('show'); 
     };
 
     const user = AppAPI.getUser();
+    AppAPI.purgeInactiveUserCaches(user?.user_id || null);
     if (user) {
+        displayedSession = AppAPI.captureSession(user.user_id);
+        AppAPI.bindViewSession(displayedSession);
         document.getElementById('auth-overlay').classList.remove('show');
         document.getElementById('header-nickname').textContent = user.nickname;
         updateAvatarUI(user);
@@ -350,6 +407,10 @@ function initAuth() {
                 UI.showToast(res.message, "error");
                 return;
             }
+            if (AppAPI.viewSession && !AppAPI.isSessionCurrent(AppAPI.viewSession)) resetAppUI();
+            displayedSession = AppAPI.captureSession(res.user.user_id);
+            if (!displayedSession) return;
+            AppAPI.bindViewSession(displayedSession);
             UI.showToast(`환영합니다, ${res.user.nickname}님!`);
             document.getElementById("header-nickname").textContent = res.user.nickname;
             document.getElementById("dropdown-nickname").textContent = res.user.nickname;
@@ -429,14 +490,15 @@ function initAuth() {
     };
 }
 
-function persistProfileUI(user) {
+function persistProfileUI(user, session) {
     // Preserve already-saved nickname changes even when a subsequent avatar upload fails.
-    if (AppAPI.getUser()?.user_id !== user.user_id) return;
+    if (!AppAPI.isSessionCurrent(session) || session.userId !== user.user_id) return false;
     localStorage.setItem('flowforge_session', JSON.stringify(user));
     document.getElementById('header-nickname').textContent = user.nickname;
     document.getElementById('dropdown-nickname').textContent = user.nickname;
     document.getElementById('dashboard-greeting').textContent = `${user.nickname}님, 환영합니다!`;
     updateAvatarUI(user);
+    return true;
 }
 
 function updateAvatarUI(user){
